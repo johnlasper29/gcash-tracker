@@ -400,7 +400,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // --- IMONG FIREBASE CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyChbH-K3pEmcmMyv09dyixFyx0t9kQJPTk",
         authDomain: "gcash-tracker-91a99.firebaseapp.com",
@@ -419,7 +418,7 @@
     let tablePairs = [];
     const maxRows = 14;
     let activePairIndex = null;
-    let isRemoteUpdate = false;
+    let isInitialLoad = true;
 
     function getDefaultStructure() {
         return [
@@ -443,9 +442,7 @@
     onValue(dbRef, (snapshot) => {
         const serverData = snapshot.val();
         if (serverData) {
-            isRemoteUpdate = true;
             tablePairs = serverData;
-            
             tablePairs.forEach(pair => {
                 if (pair.leftCollapsed === undefined) pair.leftCollapsed = false;
                 if (pair.rightCollapsed === undefined) pair.rightCollapsed = false;
@@ -456,17 +453,19 @@
                 });
             });
 
-            renderDashboard();
-            isRemoteUpdate = false;
+            if (isInitialLoad) {
+                renderDashboard();
+                isInitialLoad = false;
+            }
         } else {
             tablePairs = getDefaultStructure();
             saveToFirebase();
             renderDashboard();
+            isInitialLoad = false;
         }
     });
 
     function saveToFirebase() {
-        if (isRemoteUpdate) return;
         set(dbRef, tablePairs).catch((error) => {
             console.error("Error saving to Firebase: ", error);
         });
@@ -696,6 +695,7 @@
         }
     }
 
+    let saveTimeout = null;
     window.updateData = function(pairIdx, side) {
         let card = document.getElementById(`card-${pairIdx}-${side}`);
         if (!card) return;
@@ -714,7 +714,12 @@
 
         calculateCard(pairIdx, side);
         calculateGrandTotal();
-        saveToFirebase();
+
+        // Gihimoan og delay ang pag-save aron dili ma-interrupt ang imong pag-type
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            saveToFirebase();
+        }, 800);
     }
 
     function calculateCard(pairIdx, side) {
