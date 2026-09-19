@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GCash Tracker Dashboard</title>
     <style>
         * {
@@ -14,9 +14,10 @@
         body {
             background-color: #121212;
             color: #ffffff;
-            padding: 10px;
+            padding: 6px;
         }
         .container {
+            width: 100%;
             max-width: 1400px;
             margin: 0 auto;
         }
@@ -25,30 +26,31 @@
             justify-content: space-between;
             align-items: center;
             background: #1e1e1e;
-            padding: 10px 15px;
+            padding: 10px;
             border-radius: 6px;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             border: 1px solid #333;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
         .top-header h1 {
-            font-size: 16px;
+            font-size: 15px;
             color: #fbbf24;
         }
         .grand-total-container {
-            font-size: 18px;
+            font-size: 15px;
             font-weight: bold;
             color: #ffffff;
             text-align: center;
             background: #111827;
-            padding: 6px 20px;
+            padding: 6px 15px;
             border-radius: 4px;
             border: 1px solid #374151;
+            flex-grow: 1;
         }
         .grand-total-container span {
             color: #4ade80;
-            font-size: 20px;
+            font-size: 17px;
             margin-left: 5px;
         }
         .header-btns {
@@ -68,38 +70,34 @@
         .btn-action:hover { background: #2563eb; }
 
         .dashboard-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            width: 100%;
         }
+        @media(min-width: 1100px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
         .card {
             background: #0d1b2a;
             border: 2px solid #1e3a8a;
             border-radius: 4px;
             overflow: hidden;
-            margin-bottom: 15px;
-            position: relative;
-            width: 540px;
-            max-width: 100%;
+            width: 100%;
         }
         .placeholder {
-            width: 540px;
-            max-width: 100%;
-            visibility: hidden;
-            margin-bottom: 15px;
             display: none;
-        }
-        @media(min-width: 1100px) {
-            .placeholder { display: block; }
         }
 
         .table-headers {
             display: grid;
-            grid-template-columns: 30px 120px 150px 150px 90px;
+            grid-template-columns: 32px 25% 30% 30% 15%;
             background: #111827;
             text-align: center;
-            font-size: 16px;
+            font-size: 13px;
             font-weight: bold;
             border-bottom: 2px solid #1e3a8a;
             align-items: center;
@@ -107,6 +105,9 @@
         .table-headers div {
             padding: 6px 2px;
             border-right: 1px solid #1f2937;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .col-arrow-header {
             background: #1f2937;
@@ -115,7 +116,7 @@
             align-items: center;
             justify-content: center;
             color: #38bdf8;
-            font-size: 14px;
+            font-size: 13px;
             user-select: none;
             height: 100%;
         }
@@ -124,51 +125,49 @@
             color: #ffffff;
         }
 
-        .table-headers div:nth-child(2) { color: #ffffff; width: 120px; }
-        .table-headers div:nth-child(3) { color: #ffffff; width: 150px; }
-        .table-headers div:nth-child(4) { color: #ffffff; width: 150px; }
+        .table-headers div:nth-child(2) { color: #ffffff; }
+        .table-headers div:nth-child(3) { color: #ffffff; }
+        .table-headers div:nth-child(4) { color: #ffffff; }
         .table-headers div:nth-child(4) span { color: #4ade80; }
-        .table-headers div:nth-child(5) { color: #fb923c; border-right: none; width: 90px; }
+        .table-headers div:nth-child(5) { color: #fb923c; border-right: none; }
 
         .card-body {
             display: grid;
-            grid-template-columns: 150px 150px 150px 90px;
+            grid-template-columns: 25% 30% 30% 15%;
+            width: 100%;
         }
         .col-gcash, .col-site, .col-withdraw, .col-send {
-            padding: 4px;
+            padding: 3px;
             display: flex;
             flex-direction: column;
             gap: 3px;
+            min-width: 0;
         }
         .col-gcash {
             background: #1d3557;
             border-right: 1px solid #111827;
-            width: 150px;
         }
         .col-site {
             background: #273449;
             border-right: 1px solid #111827;
-            width: 150px;
         }
         .col-withdraw {
             background: #163821;
             border-right: 1px solid #111827;
-            width: 150px;
         }
         .col-send {
             background: #3b2413;
             align-items: center;
             justify-content: flex-start;
-            width: 90px;
         }
 
         .row-input {
             width: 100%;
-            height: 22px;
+            height: 26px;
             background: #1e293b;
             border: 1px solid #334155;
             color: #e5e7eb;
-            font-size: 15px;
+            font-size: 14px;
             text-align: center;
             border-radius: 2px;
             outline: none;
@@ -183,13 +182,13 @@
             color: #fbbf24;
         }
         .col-gcash .row-input:first-child {
-            font-size: 18px; 
+            font-size: 15px; 
         }
 
         .withdraw-wrapper {
             position: relative;
             width: 100%;
-            height: 22px;
+            height: 26px;
             background: #102617;
             border: 1px solid #22543d;
             border-radius: 2px;
@@ -208,7 +207,7 @@
             background: transparent;
             border: none;
             outline: none;
-            font-size: 15px;
+            font-size: 13px;
             text-align: center;
             color: transparent;
             caret-color: #ffffff;
@@ -221,10 +220,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 15px;
+            font-size: 13px;
             pointer-events: none;
             z-index: 1;
             white-space: pre;
+            overflow: hidden;
         }
         .part-left {
             color: #ffffff;
@@ -235,19 +235,20 @@
         
         .send-value {
             width: 100%;
-            height: 22px;
+            height: 26px;
             color: #fb923c;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 13px;
             text-align: center;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
         }
 
         .card-footer {
             display: grid;
-            grid-template-columns: 140px 1fr 80px 80px;
+            grid-template-columns: 28% 1fr 19% 19%;
             background: #111827;
             border-top: 2px solid #1e3a8a;
             align-items: stretch;
@@ -256,47 +257,53 @@
             background: #1e3a8a;
             color: white;
             border: none;
-            padding: 8px;
+            padding: 6px 2px;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 13px;
             cursor: pointer;
             text-align: center;
             border-right: 1px solid #1f2937;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .title-btn:hover { background: #1d4ed8; }
 
         .stats-box {
             display: flex;
-            justify-content: space-around;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            padding: 4px;
+            padding: 2px;
             font-weight: bold;
             border-right: 1px solid #1f2937;
+            font-size: 10px;
         }
         
         .stat-limit, .stat-pay {
-            font-size: 13px;
+            font-size: 10px;
+            text-align: center;
+            width: 100%;
         }
-        .stat-limit { text-align: center; color: #e5e7eb; }
+        .stat-limit { color: #e5e7eb; }
+        .stat-pay { color: #ffffff; }
         
-        .stat-total-val { font-size: 16px; color: #38bdf8; }
-        .stat-limit-val { font-size: 16px; color: #ef4444; }
-
-        .stat-pay { text-align: center; color: #ffffff; }
-        .stat-pay span { font-size: 16px; color: #4ade80; }
+        .stat-total-val { font-size: 12px; color: #38bdf8; }
+        .stat-limit-val { font-size: 12px; color: #ef4444; }
+        .stat-pay span { font-size: 12px; color: #4ade80; }
 
         .btn-reset {
             background: #7f1d1d;
             color: #fca5a5;
             border: none;
-            font-size: 13px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
             text-align: center;
-            padding: 8px;
+            padding: 4px;
             border-right: 1px solid #1f2937;
         }
         .btn-reset:hover { background: #991b1b; color: white; }
@@ -305,24 +312,24 @@
             background: #581c87;
             color: #e9d5ff;
             border: none;
-            font-size: 13px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
             text-align: center;
-            padding: 8px;
+            padding: 4px;
         }
         .btn-delete:hover { background: #6b21a8; color: white; }
 
         .add-section {
             display: flex;
             justify-content: center;
-            margin: 25px 0;
+            margin: 20px 0;
         }
         .btn-add-table {
             background: #059669;
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 6px;
             font-size: 14px;
             font-weight: bold;
@@ -365,35 +372,18 @@
             text-align: center;
         }
         .modal-option:hover { background: #4b5563; }
-
-        /* Mobile Optimization adjustments */
-        @media(max-width: 600px) {
-            body { padding: 4px; }
-            .card { width: 100%; font-size: 13px; }
-            .table-headers { font-size: 13px; grid-template-columns: 25px 95px 115px 115px 70px; }
-            .card-body { grid-template-columns: 115px 115px 115px 70px; }
-            .col-gcash { width: 115px; }
-            .col-site { width: 115px; }
-            .col-withdraw { width: 115px; }
-            .col-send { width: 70px; }
-            .row-input, .withdraw-wrapper, .send-value { font-size: 13px; height: 26px; }
-            .card-footer { grid-template-columns: 100px 1fr 65px 65px; }
-            .title-btn { font-size: 13px; padding: 4px; }
-            .btn-reset, .btn-delete { font-size: 11px; padding: 4px; }
-            .stats-box { font-size: 11px; padding: 2px; }
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="top-header">
-        <h1>GCash Tracker Dashboard</h1>
+        <h1>GCash Tracker</h1>
         <div class="grand-total-container">
-            GRAND TOTAL: <span id="grand-total-val">0</span>
+            TOTAL: <span id="grand-total-val">0</span>
         </div>
         <div class="header-btns">
-            <button class="btn-action" onclick="exportData()">Export Backup</button>
+            <button class="btn-action" onclick="exportData()">Export</button>
         </div>
     </div>
 
@@ -476,18 +466,10 @@
         tablePairs.forEach((pair, pairIdx) => {
             if (pair.leftVisible) {
                 container.appendChild(createCardElement(pair, pairIdx, 'left'));
-            } else {
-                let placeholder = document.createElement('div');
-                placeholder.className = 'placeholder';
-                container.appendChild(placeholder);
             }
 
             if (pair.rightVisible) {
                 container.appendChild(createCardElement(pair, pairIdx, 'right'));
-            } else {
-                let placeholder = document.createElement('div');
-                placeholder.className = 'placeholder';
-                container.appendChild(placeholder);
             }
         });
 
@@ -536,7 +518,7 @@
                 <div class="col-arrow-header" onclick="toggleCollapse(${pairIdx}, '${side}')" title="Collapse / Expand">${arrowSymbol}</div>
                 <div>Gcash</div>
                 <div>Site</div>
-                <div>Withdraw<span> / PAY</span></div>
+                <div>W / <span>PAY</span></div>
                 <div>SEND</div>
             </div>
             <div class="card-body" id="body-${pairIdx}-${side}" style="${bodyStyle}">
@@ -548,11 +530,11 @@
             <div class="card-footer" id="footer-${pairIdx}-${side}" style="${footerStyle}">
                 <button class="title-btn" onclick="openModal(${pairIdx})">${displayTitle}</button>
                 <div class="stats-box">
-                    <div class="stat-limit">TOTAL / LIMIT<br><span id="tot-limit-${pairIdx}-${side}"><span class="stat-total-val" id="tot-val-${pairIdx}-${side}">0</span> / <span class="stat-limit-val" id="lim-val-${pairIdx}-${side}">5000</span></span></div>
-                    <div class="stat-pay">TOTAL PAY<br><span id="tot-pay-${pairIdx}-${side}">0</span></div>
+                    <div class="stat-limit"><span id="tot-val-${pairIdx}-${side}">0</span>/<span class="stat-limit-val" id="lim-val-${pairIdx}-${side}">5000</span></div>
+                    <div class="stat-pay">PAY:<span id="tot-pay-${pairIdx}-${side}">0</span></div>
                 </div>
                 <button class="btn-reset" onclick="confirmReset(${pairIdx}, '${side}')">RESET</button>
-                <button class="btn-delete" onclick="deleteTable(${pairIdx}, '${side}')">DELETE</button>
+                <button class="btn-delete" onclick="deleteTable(${pairIdx}, '${side}')">DEL</button>
             </div>
         `;
         
@@ -575,7 +557,7 @@
         let left = parts[0] !== undefined ? parts[0].trim() : '';
         let right = parts[1] !== undefined ? parts[1].trim() : '';
         
-        let html = `<span class="part-left">${left} / </span>`;
+        let html = `<span class="part-left">${left}/</span>`;
         if (right !== '') {
             html += `<span class="part-right">${right}</span>`;
         }
