@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GCash Tracker Dashboard</title>
     <style>
         * {
@@ -14,94 +14,91 @@
         body {
             background-color: #121212;
             color: #ffffff;
-            padding: 4px;
+            padding: 10px;
         }
         .container {
-            width: 100%;
-            max-width: 1400px;
+            min-width: 1150px; /* Gipugngan niini nga malahi ang view sa phone, pareho na sa PC */
             margin: 0 auto;
+            padding: 0 10px;
         }
         .top-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: #1e1e1e;
-            padding: 8px;
+            padding: 10px 15px;
             border-radius: 6px;
-            margin-bottom: 8px;
+            margin-bottom: 20px;
             border: 1px solid #333;
-            flex-wrap: wrap;
-            gap: 6px;
         }
         .top-header h1 {
-            font-size: 13px;
+            font-size: 16px;
             color: #fbbf24;
         }
         .grand-total-container {
-            font-size: 13px;
+            font-size: 18px;
             font-weight: bold;
             color: #ffffff;
             text-align: center;
             background: #111827;
-            padding: 4px 10px;
+            padding: 6px 20px;
             border-radius: 4px;
             border: 1px solid #374151;
-            flex-grow: 1;
         }
         .grand-total-container span {
             color: #4ade80;
-            font-size: 15px;
-            margin-left: 4px;
+            font-size: 20px;
+            margin-left: 5px;
         }
         .header-btns {
             display: flex;
-            gap: 6px;
+            gap: 10px;
         }
         .btn-action {
             background: #3b82f6;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: bold;
         }
         .btn-action:hover { background: #2563eb; }
 
-        /* Gihimo natong permanent 2-columns bisan sa mobile */
         .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 6px;
-            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
         }
-
         .card {
             background: #0d1b2a;
-            border: 1.5px solid #1e3a8a;
+            border: 2px solid #1e3a8a;
             border-radius: 4px;
             overflow: hidden;
-            width: 100%;
+            margin-bottom: 15px;
+            position: relative;
+            width: 540px;
+        }
+        .placeholder {
+            width: 540px;
+            visibility: hidden;
+            margin-bottom: 15px;
         }
 
         .table-headers {
             display: grid;
-            grid-template-columns: 24px 1fr 1.1fr 1.1fr 0.8fr;
+            grid-template-columns: 30px 120px 150px 150px 90px;
             background: #111827;
             text-align: center;
-            font-size: 10px;
+            font-size: 16px;
             font-weight: bold;
-            border-bottom: 1.5px solid #1e3a8a;
+            border-bottom: 2px solid #1e3a8a;
             align-items: center;
-            width: 100%;
         }
         .table-headers div {
-            padding: 4px 1px;
+            padding: 6px 2px;
             border-right: 1px solid #1f2937;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
         .col-arrow-header {
             background: #1f2937;
@@ -110,7 +107,7 @@
             align-items: center;
             justify-content: center;
             color: #38bdf8;
-            font-size: 10px;
+            font-size: 14px;
             user-select: none;
             height: 100%;
         }
@@ -119,40 +116,42 @@
             color: #ffffff;
         }
 
-        .table-headers div:nth-child(2) { color: #ffffff; }
-        .table-headers div:nth-child(3) { color: #ffffff; }
-        .table-headers div:nth-child(4) { color: #ffffff; }
+        .table-headers div:nth-child(2) { color: #ffffff; width: 120px; }
+        .table-headers div:nth-child(3) { color: #ffffff; width: 150px; }
+        .table-headers div:nth-child(4) { color: #ffffff; width: 150px; }
         .table-headers div:nth-child(4) span { color: #4ade80; }
-        .table-headers div:nth-child(5) { color: #fb923c; border-right: none; }
+        .table-headers div:nth-child(5) { color: #fb923c; border-right: none; width: 90px; }
 
         .card-body {
             display: grid;
-            grid-template-columns: 1fr 1.1fr 1.1fr 0.8fr;
-            width: 100%;
+            grid-template-columns: 150px 150px 150px 90px;
         }
         .col-gcash, .col-site, .col-withdraw, .col-send {
-            padding: 2px;
+            padding: 4px;
             display: flex;
             flex-direction: column;
-            gap: 2px;
-            min-width: 0;
+            gap: 3px;
         }
         .col-gcash {
             background: #1d3557;
             border-right: 1px solid #111827;
+            width: 150px;
         }
         .col-site {
             background: #273449;
             border-right: 1px solid #111827;
+            width: 150px;
         }
         .col-withdraw {
             background: #163821;
             border-right: 1px solid #111827;
+            width: 150px;
         }
         .col-send {
             background: #3b2413;
             align-items: center;
             justify-content: flex-start;
+            width: 90px;
         }
 
         .row-input {
@@ -161,7 +160,7 @@
             background: #1e293b;
             border: 1px solid #334155;
             color: #e5e7eb;
-            font-size: 11px;
+            font-size: 15px;
             text-align: center;
             border-radius: 2px;
             outline: none;
@@ -176,7 +175,7 @@
             color: #fbbf24;
         }
         .col-gcash .row-input:first-child {
-            font-size: 12px; 
+            font-size: 18px; 
         }
 
         .withdraw-wrapper {
@@ -201,7 +200,7 @@
             background: transparent;
             border: none;
             outline: none;
-            font-size: 10px;
+            font-size: 15px;
             text-align: center;
             color: transparent;
             caret-color: #ffffff;
@@ -214,11 +213,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
+            font-size: 15px;
             pointer-events: none;
             z-index: 1;
             white-space: pre;
-            overflow: hidden;
         }
         .part-left {
             color: #ffffff;
@@ -232,73 +230,65 @@
             height: 22px;
             color: #fb923c;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 15px;
             text-align: center;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
         }
 
         .card-footer {
             display: grid;
-            grid-template-columns: 28% 1fr 19% 19%;
+            grid-template-columns: 140px 1fr 80px 80px;
             background: #111827;
-            border-top: 1.5px solid #1e3a8a;
+            border-top: 2px solid #1e3a8a;
             align-items: stretch;
-            width: 100%;
         }
         .title-btn {
             background: #1e3a8a;
             color: white;
             border: none;
-            padding: 4px 1px;
+            padding: 8px;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 18px;
             cursor: pointer;
             text-align: center;
             border-right: 1px solid #1f2937;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
         .title-btn:hover { background: #1d4ed8; }
 
         .stats-box {
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            justify-content: space-around;
             align-items: center;
-            padding: 2px;
+            padding: 4px;
             font-weight: bold;
             border-right: 1px solid #1f2937;
-            font-size: 9px;
         }
         
         .stat-limit, .stat-pay {
-            font-size: 8px;
-            text-align: center;
-            width: 100%;
+            font-size: 13px;
         }
-        .stat-limit { color: #e5e7eb; }
-        .stat-pay { color: #ffffff; }
+        .stat-limit { text-align: center; color: #e5e7eb; }
         
-        .stat-total-val { font-size: 10px; color: #38bdf8; }
-        .stat-limit-val { font-size: 10px; color: #ef4444; }
-        .stat-pay span { font-size: 10px; color: #4ade80; }
+        .stat-total-val { font-size: 16px; color: #38bdf8; }
+        .stat-limit-val { font-size: 16px; color: #ef4444; }
+
+        .stat-pay { text-align: center; color: #ffffff; }
+        .stat-pay span { font-size: 16px; color: #4ade80; }
 
         .btn-reset {
             background: #7f1d1d;
             color: #fca5a5;
             border: none;
-            font-size: 9px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             text-align: center;
-            padding: 2px;
+            padding: 8px;
             border-right: 1px solid #1f2937;
         }
         .btn-reset:hover { background: #991b1b; color: white; }
@@ -307,31 +297,31 @@
             background: #581c87;
             color: #e9d5ff;
             border: none;
-            font-size: 9px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             text-align: center;
-            padding: 2px;
+            padding: 8px;
         }
         .btn-delete:hover { background: #6b21a8; color: white; }
 
         .add-section {
             display: flex;
             justify-content: center;
-            margin: 15px 0;
+            margin: 25px 0;
         }
         .btn-add-table {
             background: #059669;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 12px 24px;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
         .btn-add-table:hover { background: #047857; }
@@ -373,12 +363,12 @@
 
 <div class="container">
     <div class="top-header">
-        <h1>GCash Tracker</h1>
+        <h1>GCash Tracker Dashboard</h1>
         <div class="grand-total-container">
-            TOTAL: <span id="grand-total-val">0</span>
+            GRAND TOTAL: <span id="grand-total-val">0</span>
         </div>
         <div class="header-btns">
-            <button class="btn-action" onclick="exportData()">Export</button>
+            <button class="btn-action" onclick="exportData()">Export Backup</button>
         </div>
     </div>
 
@@ -387,7 +377,7 @@
     <div class="add-section">
         <button class="btn-add-table" onclick="addTablePair()">
             <span>Add Table Pair</span> 
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
         </button>
     </div>
 </div>
@@ -411,7 +401,7 @@
     let activePairIndex = null;
 
     function initDefaultData() {
-        let saved = localStorage.getItem('gcash_fixed_slots_v9');
+        let saved = localStorage.getItem('gcash_fixed_slots_v8');
         if (saved) {
             tablePairs = JSON.parse(saved);
         } else {
@@ -461,10 +451,18 @@
         tablePairs.forEach((pair, pairIdx) => {
             if (pair.leftVisible) {
                 container.appendChild(createCardElement(pair, pairIdx, 'left'));
+            } else {
+                let placeholder = document.createElement('div');
+                placeholder.className = 'placeholder';
+                container.appendChild(placeholder);
             }
 
             if (pair.rightVisible) {
                 container.appendChild(createCardElement(pair, pairIdx, 'right'));
+            } else {
+                let placeholder = document.createElement('div');
+                placeholder.className = 'placeholder';
+                container.appendChild(placeholder);
             }
         });
 
@@ -513,7 +511,7 @@
                 <div class="col-arrow-header" onclick="toggleCollapse(${pairIdx}, '${side}')" title="Collapse / Expand">${arrowSymbol}</div>
                 <div>Gcash</div>
                 <div>Site</div>
-                <div>W / <span>PAY</span></div>
+                <div>Withdraw<span> / PAY</span></div>
                 <div>SEND</div>
             </div>
             <div class="card-body" id="body-${pairIdx}-${side}" style="${bodyStyle}">
@@ -525,11 +523,11 @@
             <div class="card-footer" id="footer-${pairIdx}-${side}" style="${footerStyle}">
                 <button class="title-btn" onclick="openModal(${pairIdx})">${displayTitle}</button>
                 <div class="stats-box">
-                    <div class="stat-limit"><span id="tot-val-${pairIdx}-${side}">0</span>/<span class="stat-limit-val" id="lim-val-${pairIdx}-${side}">5000</span></div>
-                    <div class="stat-pay">PAY:<span id="tot-pay-${pairIdx}-${side}">0</span></div>
+                    <div class="stat-limit">TOTAL / LIMIT<br><span id="tot-limit-${pairIdx}-${side}"><span class="stat-total-val" id="tot-val-${pairIdx}-${side}">0</span> / <span class="stat-limit-val" id="lim-val-${pairIdx}-${side}">5000</span></span></div>
+                    <div class="stat-pay">TOTAL PAY<br><span id="tot-pay-${pairIdx}-${side}">0</span></div>
                 </div>
                 <button class="btn-reset" onclick="confirmReset(${pairIdx}, '${side}')">RESET</button>
-                <button class="btn-delete" onclick="deleteTable(${pairIdx}, '${side}')">DEL</button>
+                <button class="btn-delete" onclick="deleteTable(${pairIdx}, '${side}')">DELETE</button>
             </div>
         `;
         
@@ -552,7 +550,7 @@
         let left = parts[0] !== undefined ? parts[0].trim() : '';
         let right = parts[1] !== undefined ? parts[1].trim() : '';
         
-        let html = `<span class="part-left">${left}/</span>`;
+        let html = `<span class="part-left">${left} / </span>`;
         if (right !== '') {
             html += `<span class="part-right">${right}</span>`;
         }
@@ -591,155 +589,65 @@
         if (event.key === 'Enter') {
             event.preventDefault();
             let card = document.getElementById(`card-${pairIdx}-${side}`);
-            let siteInputs = card.querySelectorAll('.site-input');
-            if (rowIndex + 1 < siteInputs.length) {
-                siteInputs[rowIndex + 1].focus();
-                siteInputs[rowIndex + 1].select();
+            let siteInput = card.querySelectorAll('.site-input')[rowIndex];
+            let withdrawInput = card.querySelectorAll('.withdraw-input')[rowIndex];
+            let val = siteInput.value;
+
+            let match = val.match(/(.+?)\s+(\d+)[-\/,\s](\d+)/);
+            if (match) {
+                let siteName = match[1].trim();
+                let num1 = match[2];
+                let num2 = match[3];
+
+                siteInput.value = siteName;
+                withdrawInput.value = `${num1} / ${num2}`;
+                
+                let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
+                if (displayEl) displayEl.innerHTML = formatWithdrawDisplay(withdrawInput.value);
+            }
+
+            updateData(pairIdx, side);
+
+            let nextSiteInput = card.querySelectorAll('.site-input')[rowIndex + 1];
+            if (nextSiteInput) {
+                nextSiteInput.focus();
+                nextSiteInput.select();
             }
         }
     }
 
-    function updateData(pairIdx, side) {
-        let card = document.getElementById(`card-${pairIdx}-${side}`);
-        if (!card) return;
-
-        let gcashInputs = card.querySelectorAll('.gcash-input');
-        let siteInputs = card.querySelectorAll('.site-input');
-        let withdrawInputs = card.querySelectorAll('.withdraw-input');
-
-        let gcashArr = [];
-        let siteArr = [];
-        let withdrawArr = [];
-
-        for (let r = 0; r < maxRows; r++) {
-            gcashArr.push(gcashInputs[r].value);
-            siteArr.push(siteInputs[r].value);
-            withdrawArr.push(withdrawInputs[r].value);
-        }
-
-        tablePairs[pairIdx][side].gcash = gcashArr;
-        tablePairs[pairIdx][side].sites = siteArr;
-        tablePairs[pairIdx][side].withdraws = withdrawArr;
-
-        saveDataOnly();
-        calculateCard(pairIdx, side);
-        calculateGrandTotal();
-    }
-
-    function calculateCard(pairIdx, side) {
-        let card = document.getElementById(`card-${pairIdx}-${side}`);
-        if (!card) return;
-
-        let gcashInputs = card.querySelectorAll('.gcash-input');
-        let withdrawInputs = card.querySelectorAll('.withdraw-input');
-
-        let totalGcashSum = 0;
-        let totalPaySum = 0;
-
-        for (let r = 0; r < maxRows; r++) {
-            let gVal = parseFloat(gcashInputs[r].value) || 0;
-            totalGcashSum += gVal;
-
-            let wValStr = withdrawInputs[r].value;
-            let sendVal = 0;
-            let payVal = 0;
-
-            if (wValStr.includes('/')) {
-                let parts = wValStr.split('/');
-                let leftNum = parseFloat(parts[0]) || 0;
-                let rightNum = parseFloat(parts[1]) || 0;
-                sendVal = leftNum;
-                payVal = rightNum;
-            } else {
-                sendVal = parseFloat(wValStr) || 0;
-            }
-
-            totalPaySum += payVal;
-
-            let sendEl = document.getElementById(`send-${pairIdx}-${side}-${r}`);
-            if (sendEl) {
-                sendEl.textContent = sendVal !== 0 ? sendVal : '0';
-            }
-        }
-
-        let totValEl = document.getElementById(`tot-val-${pairIdx}-${side}`);
-        let limValEl = document.getElementById(`lim-val-${pairIdx}-${side}`);
-        let totPayEl = document.getElementById(`tot-pay-${pairIdx}-${side}`);
-
-        if (totValEl) totValEl.textContent = totalGcashSum;
-        if (totPayEl) totPayEl.textContent = totalPaySum;
-
-        let limit = 5000;
-        if (limValEl) limValEl.textContent = limit;
-        if (totValEl) {
-            totValEl.style.color = totalGcashSum > limit ? '#ef4444' : '#38bdf8';
-        }
-    }
-
-    function calculateGrandTotal() {
-        let grandTotal = 0;
-        tablePairs.forEach((pair, pairIdx) => {
-            ['left', 'right'].forEach(side => {
-                let card = document.getElementById(`card-${pairIdx}-${side}`);
-                if (card) {
-                    let gcashInputs = card.querySelectorAll('.gcash-input');
-                    gcashInputs.forEach(input => {
-                        grandTotal += parseFloat(input.value) || 0;
-                    });
-                } else {
-                    let tableObj = pair[side];
-                    if (tableObj && tableObj.gcash) {
-                        tableObj.gcash.forEach(val => {
-                            grandTotal += parseFloat(val) || 0;
-                        });
-                    }
-                }
-            });
+    function addTablePair() {
+        tablePairs.push({
+            category: "NUBIA",
+            leftVisible: true,
+            rightVisible: true,
+            leftCollapsed: false,
+            rightCollapsed: false,
+            left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
+            right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
         });
-
-        let gtEl = document.getElementById('grand-total-val');
-        if (gtEl) gtEl.textContent = grandTotal;
-    }
-
-    function saveDataOnly() {
-        localStorage.setItem('gcash_fixed_slots_v9', JSON.stringify(tablePairs));
-    }
-
-    function saveAndRender() {
-        saveDataOnly();
-        renderDashboard();
+        saveAndRender();
     }
 
     function confirmReset(pairIdx, side) {
-        if (confirm("Seguro ka nga i-reset kining table?")) {
-            tablePairs[pairIdx][side] = {
-                gcash: Array(14).fill(""),
-                sites: Array(14).fill(""),
-                withdraws: Array(14).fill("")
-            };
+        if (confirm("Sigurado ka ba nga i-reset kining tableha?")) {
+            tablePairs[pairIdx][side].gcash = Array(14).fill("");
+            tablePairs[pairIdx][side].sites = Array(14).fill("");
+            tablePairs[pairIdx][side].withdraws = Array(14).fill("");
             saveAndRender();
         }
     }
 
     function deleteTable(pairIdx, side) {
-        if (confirm("Gusto ba nimo i-delete o i-hide kini nga table?")) {
-            let pair = tablePairs[pairIdx];
-            if (side === 'left') {
-                pair.leftVisible = false;
-            } else {
-                pair.rightVisible = false;
-            }
-
-            if (!pair.leftVisible && !pair.rightVisible) {
+        if (confirm("Sigurado ka ba nga i-delete kining tableha?")) {
+            tablePairs[pairIdx][side + 'Visible'] = false;
+            
+            if (!tablePairs[pairIdx].leftVisible && !tablePairs[pairIdx].rightVisible) {
                 tablePairs.splice(pairIdx, 1);
             }
+            
             saveAndRender();
         }
-    }
-
-    function addTablePair() {
-        activePairIndex = null;
-        document.getElementById('categoryModal').style.display = 'flex';
     }
 
     function openModal(pairIdx) {
@@ -749,38 +657,119 @@
 
     function closeModal() {
         document.getElementById('categoryModal').style.display = 'none';
-        activePairIndex = null;
     }
 
-    function selectCategory(catName) {
+    function selectCategory(categoryName) {
         if (activePairIndex !== null) {
-            tablePairs[activePairIndex].category = catName;
-        } else {
-            tablePairs.push({
-                category: catName,
-                leftVisible: true,
-                rightVisible: true,
-                leftCollapsed: false,
-                rightCollapsed: false,
-                left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
-                right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
-            });
+            tablePairs[activePairIndex].category = categoryName;
+            closeModal();
+            saveAndRender();
         }
-        closeModal();
-        saveAndRender();
+    }
+
+    function updateData(pairIdx, side) {
+        let card = document.getElementById(`card-${pairIdx}-${side}`);
+        if (!card) return;
+
+        let gcashVals = [];
+        let sites = [];
+        let withdraws = [];
+        
+        card.querySelectorAll('.gcash-input').forEach(inp => gcashVals.push(inp.value));
+        card.querySelectorAll('.site-input').forEach(inp => sites.push(inp.value));
+        card.querySelectorAll('.withdraw-input').forEach(inp => withdraws.push(inp.value));
+
+        tablePairs[pairIdx][side].gcash = gcashVals;
+        tablePairs[pairIdx][side].sites = sites;
+        tablePairs[pairIdx][side].withdraws = withdraws;
+
+        calculateCard(pairIdx, side);
+        calculateGrandTotal();
+        localStorage.setItem('gcash_fixed_slots_v8', JSON.stringify(tablePairs));
+    }
+
+    function calculateCard(pairIdx, side) {
+        let card = document.getElementById(`card-${pairIdx}-${side}`);
+        let withdrawInputs;
+        
+        let totalWithdraw = 0;
+        let totalPay = 0;
+
+        if (card) {
+            withdrawInputs = card.querySelectorAll('.withdraw-input');
+            withdrawInputs.forEach((inp, r) => {
+                let parts = inp.value.split('/');
+                let w = parseFloat(parts[0]) || 0;
+                let p = parseFloat(parts[1]) || 0;
+                let s = w - p;
+
+                let sendEl = document.getElementById(`send-${pairIdx}-${side}-${r}`);
+                if (sendEl) sendEl.innerText = s;
+                
+                totalWithdraw += w;
+                totalPay += p;
+            });
+        } else {
+            let pair = tablePairs[pairIdx];
+            if (pair && pair[side] && pair[side].withdraws) {
+                pair[side].withdraws.forEach(wVal => {
+                    let parts = (wVal || "").split('/');
+                    let w = parseFloat(parts[0]) || 0;
+                    let p = parseFloat(parts[1]) || 0;
+                    totalWithdraw += w;
+                    totalPay += p;
+                });
+            }
+        }
+
+        let remainingLimit = 5000 - totalWithdraw;
+
+        let totValEl = document.getElementById(`tot-val-${pairIdx}-${side}`);
+        let limValEl = document.getElementById(`lim-val-${pairIdx}-${side}`);
+        let payEl = document.getElementById(`tot-pay-${pairIdx}-${side}`);
+        
+        if (totValEl) totValEl.innerText = totalWithdraw;
+        if (limValEl) limValEl.innerText = remainingLimit;
+        if (payEl) payEl.innerText = totalPay;
+
+        return totalPay;
+    }
+
+    function calculateGrandTotal() {
+        let grandTotal = 0;
+
+        tablePairs.forEach((pair, pairIdx) => {
+            if (pair.leftVisible) {
+                grandTotal += calculateCard(pairIdx, 'left');
+            }
+            if (pair.rightVisible) {
+                grandTotal += calculateCard(pairIdx, 'right');
+            }
+        });
+
+        let grandTotalEl = document.getElementById('grand-total-val');
+        if (grandTotalEl) {
+            grandTotalEl.innerText = grandTotal;
+        }
+    }
+
+    function saveAndRender() {
+        localStorage.setItem('gcash_fixed_slots_v8', JSON.stringify(tablePairs));
+        renderDashboard();
     }
 
     function exportData() {
-        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tablePairs, null, 2));
-        let downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", "gcash_tracker_backup.json");
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
+        let saved = localStorage.getItem('gcash_fixed_slots_v8');
+        let blob = new Blob([saved], {type: "application/json"});
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url;
+        a.download = 'gcash_tracker_backup.json';
+        a.click();
     }
 
     window.onload = initDefaultData;
 </script>
+
 </body>
 </html>
