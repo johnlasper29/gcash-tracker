@@ -17,7 +17,7 @@
             padding: 10px;
         }
         .container {
-            min-width: 1150px;
+            min-width: 1150px; /* Gipugngan niini nga malahi ang view sa phone, pareho na sa PC */
             margin: 0 auto;
             padding: 0 10px;
         }
@@ -363,7 +363,7 @@
 
 <div class="container">
     <div class="top-header">
-        <h1>GCash Tracker Dashboard (Real-time Sync)</h1>
+        <h1>GCash Tracker Dashboard</h1>
         <div class="grand-total-container">
             GRAND TOTAL: <span id="grand-total-val">0</span>
         </div>
@@ -395,86 +395,56 @@
     </div>
 </div>
 
-<!-- Firebase Scripts & Logic -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    // --- ISLAN KINING IMONG FIREBASE CONFIG ---
-    const firebaseConfig = {
-        apiKey: "NAA_DIRI_IMONG_API_KEY",
-        authDomain: "NAA_DIRI_IMONG_AUTH_DOMAIN",
-        databaseURL: "NAA_DIRI_IMONG_DATABASE_URL",
-        projectId: "NAA_DIRI_IMONG_PROJECT_ID",
-        storageBucket: "NAA_DIRI_IMONG_STORAGE_BUCKET",
-        messagingSenderId: "NAA_DIRI_IMONG_SENDER_ID",
-        appId: "NAA_DIRI_IMONG_APP_ID"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const dbRef = ref(db, 'gcashTracker/data');
-
+<script>
     let tablePairs = [];
     const maxRows = 14;
     let activePairIndex = null;
-    let isRemoteUpdate = false; // Aron dili mag-loop ang pag-sync
 
-    function getDefaultStructure() {
-        return [
-            {
-                category: "RM",
-                leftVisible: true, rightVisible: true,
-                leftCollapsed: false, rightCollapsed: false,
-                left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
-                right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
-            },
-            {
-                category: "NUBIA",
-                leftVisible: true, rightVisible: true,
-                leftCollapsed: false, rightCollapsed: false,
-                left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
-                right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
-            }
-        ];
-    }
-
-    // Paminawon ang Firebase sa matagusab sa cloud (Real-time listener)
-    onValue(dbRef, (snapshot) => {
-        const serverData = snapshot.val();
-        if (serverData) {
-            isRemoteUpdate = true;
-            tablePairs = serverData;
-            
-            // Sigurohon nga kompleto ang arrays
-            tablePairs.forEach(pair => {
-                if (pair.leftCollapsed === undefined) pair.leftCollapsed = false;
-                if (pair.rightCollapsed === undefined) pair.rightCollapsed = false;
-                ['left', 'right'].forEach(side => {
-                    if (!pair[side].gcash) pair[side].gcash = Array(14).fill("");
-                    if (!pair[side].sites) pair[side].sites = Array(14).fill("");
-                    if (!pair[side].withdraws) pair[side].withdraws = Array(14).fill("");
-                });
-            });
-
-            renderDashboard();
-            isRemoteUpdate = false;
+    function initDefaultData() {
+        let saved = localStorage.getItem('gcash_fixed_slots_v8');
+        if (saved) {
+            tablePairs = JSON.parse(saved);
         } else {
-            // Kung wala pa sa Firebase, i-save ang default
-            tablePairs = getDefaultStructure();
-            saveToFirebase();
-            renderDashboard();
+            tablePairs = [
+                {
+                    category: "RM",
+                    leftVisible: true,
+                    rightVisible: true,
+                    leftCollapsed: false,
+                    rightCollapsed: false,
+                    left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
+                    right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
+                },
+                {
+                    category: "NUBIA",
+                    leftVisible: true,
+                    rightVisible: true,
+                    leftCollapsed: false,
+                    rightCollapsed: false,
+                    left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
+                    right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
+                }
+            ];
         }
-    });
+        
+        tablePairs.forEach(pair => {
+            if (pair.leftCollapsed === undefined) pair.leftCollapsed = false;
+            if (pair.rightCollapsed === undefined) pair.rightCollapsed = false;
 
-    function saveToFirebase() {
-        if (isRemoteUpdate) return;
-        set(dbRef, tablePairs).catch((error) => {
-            console.error("Error saving to Firebase: ", error);
+            ['left', 'right'].forEach(side => {
+                if (typeof pair[side].gcash === 'string') {
+                    let oldVal = pair[side].gcash;
+                    pair[side].gcash = Array(14).fill("");
+                    if (oldVal) pair[side].gcash[0] = oldVal;
+                }
+                if (!pair[side].gcash) pair[side].gcash = Array(14).fill("");
+            });
         });
+
+        renderDashboard();
     }
 
-    window.renderDashboard = function() {
+    function renderDashboard() {
         let container = document.getElementById('tables-container');
         container.innerHTML = '';
 
@@ -565,14 +535,13 @@
         return card;
     }
 
-    window.toggleCollapse = function(pairIdx, side) {
+    function toggleCollapse(pairIdx, side) {
         if (side === 'left') {
             tablePairs[pairIdx].leftCollapsed = !tablePairs[pairIdx].leftCollapsed;
         } else {
             tablePairs[pairIdx].rightCollapsed = !tablePairs[pairIdx].rightCollapsed;
         }
-        saveToFirebase();
-        renderDashboard();
+        saveAndRender();
     }
 
     function formatWithdrawDisplay(val) {
@@ -588,7 +557,7 @@
         return html;
     }
 
-    window.handleWithdrawInput = function(pairIdx, side, rowIndex, inputEl) {
+    function handleWithdrawInput(pairIdx, side, rowIndex, inputEl) {
         let val = inputEl.value;
         let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
         if (displayEl) {
@@ -597,7 +566,7 @@
         updateData(pairIdx, side);
     }
 
-    window.normalizeWithdraw = function(pairIdx, side, rowIndex, inputEl) {
+    function normalizeWithdraw(pairIdx, side, rowIndex, inputEl) {
         let val = inputEl.value.trim();
         if (val.includes('/')) {
             let parts = val.split('/');
@@ -616,7 +585,7 @@
         updateData(pairIdx, side);
     }
 
-    window.handleSiteKey = function(event, pairIdx, side, rowIndex) {
+    function handleSiteKey(event, pairIdx, side, rowIndex) {
         if (event.key === 'Enter') {
             event.preventDefault();
             let card = document.getElementById(`card-${pairIdx}-${side}`);
@@ -647,58 +616,58 @@
         }
     }
 
-    window.addTablePair = function() {
+    function addTablePair() {
         tablePairs.push({
             category: "NUBIA",
-            leftVisible: true, rightVisible: true,
-            leftCollapsed: false, rightCollapsed: false,
+            leftVisible: true,
+            rightVisible: true,
+            leftCollapsed: false,
+            rightCollapsed: false,
             left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
             right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
         });
-        saveToFirebase();
-        renderDashboard();
+        saveAndRender();
     }
 
-    window.confirmReset = function(pairIdx, side) {
+    function confirmReset(pairIdx, side) {
         if (confirm("Sigurado ka ba nga i-reset kining tableha?")) {
             tablePairs[pairIdx][side].gcash = Array(14).fill("");
             tablePairs[pairIdx][side].sites = Array(14).fill("");
             tablePairs[pairIdx][side].withdraws = Array(14).fill("");
-            saveToFirebase();
-            renderDashboard();
+            saveAndRender();
         }
     }
 
-    window.deleteTable = function(pairIdx, side) {
+    function deleteTable(pairIdx, side) {
         if (confirm("Sigurado ka ba nga i-delete kining tableha?")) {
             tablePairs[pairIdx][side + 'Visible'] = false;
+            
             if (!tablePairs[pairIdx].leftVisible && !tablePairs[pairIdx].rightVisible) {
                 tablePairs.splice(pairIdx, 1);
             }
-            saveToFirebase();
-            renderDashboard();
+            
+            saveAndRender();
         }
     }
 
-    window.openModal = function(pairIdx) {
+    function openModal(pairIdx) {
         activePairIndex = pairIdx;
         document.getElementById('categoryModal').style.display = 'flex';
     }
 
-    window.closeModal = function() {
+    function closeModal() {
         document.getElementById('categoryModal').style.display = 'none';
     }
 
-    window.selectCategory = function(categoryName) {
+    function selectCategory(categoryName) {
         if (activePairIndex !== null) {
             tablePairs[activePairIndex].category = categoryName;
             closeModal();
-            saveToFirebase();
-            renderDashboard();
+            saveAndRender();
         }
     }
 
-    window.updateData = function(pairIdx, side) {
+    function updateData(pairIdx, side) {
         let card = document.getElementById(`card-${pairIdx}-${side}`);
         if (!card) return;
 
@@ -716,16 +685,18 @@
 
         calculateCard(pairIdx, side);
         calculateGrandTotal();
-        saveToFirebase();
+        localStorage.setItem('gcash_fixed_slots_v8', JSON.stringify(tablePairs));
     }
 
     function calculateCard(pairIdx, side) {
         let card = document.getElementById(`card-${pairIdx}-${side}`);
+        let withdrawInputs;
+        
         let totalWithdraw = 0;
         let totalPay = 0;
 
         if (card) {
-            let withdrawInputs = card.querySelectorAll('.withdraw-input');
+            withdrawInputs = card.querySelectorAll('.withdraw-input');
             withdrawInputs.forEach((inp, r) => {
                 let parts = inp.value.split('/');
                 let w = parseFloat(parts[0]) || 0;
@@ -766,24 +737,38 @@
 
     function calculateGrandTotal() {
         let grandTotal = 0;
+
         tablePairs.forEach((pair, pairIdx) => {
-            if (pair.leftVisible) grandTotal += calculateCard(pairIdx, 'left');
-            if (pair.rightVisible) grandTotal += calculateCard(pairIdx, 'right');
+            if (pair.leftVisible) {
+                grandTotal += calculateCard(pairIdx, 'left');
+            }
+            if (pair.rightVisible) {
+                grandTotal += calculateCard(pairIdx, 'right');
+            }
         });
 
         let grandTotalEl = document.getElementById('grand-total-val');
-        if (grandTotalEl) grandTotalEl.innerText = grandTotal;
+        if (grandTotalEl) {
+            grandTotalEl.innerText = grandTotal;
+        }
     }
 
-    window.exportData = function() {
-        let dataStr = JSON.stringify(tablePairs, null, 2);
-        let blob = new Blob([dataStr], {type: "application/json"});
+    function saveAndRender() {
+        localStorage.setItem('gcash_fixed_slots_v8', JSON.stringify(tablePairs));
+        renderDashboard();
+    }
+
+    function exportData() {
+        let saved = localStorage.getItem('gcash_fixed_slots_v8');
+        let blob = new Blob([saved], {type: "application/json"});
         let url = URL.createObjectURL(blob);
         let a = document.createElement('a');
         a.href = url;
         a.download = 'gcash_tracker_backup.json';
         a.click();
     }
+
+    window.onload = initDefaultData;
 </script>
 
 </body>
