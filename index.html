@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GCash Tracker Dashboard</title>
+    <!-- Google Font: Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Montserrat', Arial, sans-serif;
         }
         body {
             background-color: #121212;
@@ -41,7 +43,7 @@
         }
         .grand-total-container {
             font-size: 18px;
-            font-weight: bold;
+            font-weight: 700;
             color: #ffffff;
             text-align: center;
             background: #111827;
@@ -53,6 +55,7 @@
             color: #4ade80;
             font-size: 20px;
             margin-left: 5px;
+            font-weight: 700;
         }
         .header-btns {
             display: flex;
@@ -66,7 +69,7 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 700;
         }
         .btn-action:hover { background: #2563eb; }
 
@@ -101,8 +104,8 @@
             grid-template-columns: 30px 120px 150px 150px 90px;
             background: #111827;
             text-align: center;
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 15px;
+            font-weight: 700;
             border-bottom: 2px solid #1e3a8a;
             align-items: center;
         }
@@ -170,11 +173,11 @@
             background: #1e293b;
             border: 1px solid #334155;
             color: #e5e7eb;
-            font-size: 15px;
+            font-size: 14px;
             text-align: center;
             border-radius: 2px;
             outline: none;
-            font-weight: normal;
+            font-weight: 600;
         }
         .row-input:focus {
             border-color: #3b82f6;
@@ -185,7 +188,8 @@
             color: #fbbf24;
         }
         .col-gcash .row-input:first-child {
-            font-size: 18px; 
+            font-size: 16px; 
+            font-weight: 700;
         }
 
         .withdraw-wrapper {
@@ -210,11 +214,12 @@
             background: transparent;
             border: none;
             outline: none;
-            font-size: 15px;
+            font-size: 14px;
             text-align: center;
             color: transparent;
             caret-color: #ffffff;
             z-index: 2;
+            font-weight: 600;
         }
         .withdraw-display {
             position: absolute;
@@ -223,24 +228,27 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 15px;
+            font-size: 14px;
             pointer-events: none;
             z-index: 1;
             white-space: pre;
+            font-weight: 600;
         }
         .part-left {
             color: #ffffff;
+            font-weight: 600;
         }
         .part-right {
             color: #4ade80;
+            font-weight: 600;
         }
         
         .send-value {
             width: 100%;
             height: 22px;
             color: #fb923c;
-            font-weight: bold;
-            font-size: 15px;
+            font-weight: 700;
+            font-size: 14px;
             text-align: center;
             display: flex;
             align-items: center;
@@ -259,8 +267,8 @@
             color: white;
             border: none;
             padding: 8px;
-            font-weight: bold;
-            font-size: 18px;
+            font-weight: 700;
+            font-size: 16px;
             cursor: pointer;
             text-align: center;
             border-right: 1px solid #1f2937;
@@ -275,27 +283,28 @@
             justify-content: space-around;
             align-items: center;
             padding: 4px;
-            font-weight: bold;
+            font-weight: 600;
             border-right: 1px solid #1f2937;
         }
         
         .stat-limit, .stat-pay {
-            font-size: 13px;
+            font-size: 12px;
+            font-weight: 600;
         }
         .stat-limit { text-align: center; color: #e5e7eb; }
         
-        .stat-total-val { font-size: 16px; color: #38bdf8; }
-        .stat-limit-val { font-size: 16px; color: #ef4444; }
+        .stat-total-val { font-size: 15px; color: #38bdf8; font-weight: 700; }
+        .stat-limit-val { font-size: 15px; color: #ef4444; font-weight: 700; }
 
         .stat-pay { text-align: center; color: #ffffff; }
-        .stat-pay span { font-size: 16px; color: #4ade80; }
+        .stat-pay span { font-size: 15px; color: #4ade80; font-weight: 700; }
 
         .btn-reset {
             background: #7f1d1d;
             color: #fca5a5;
             border: none;
-            font-size: 13px;
-            font-weight: bold;
+            font-size: 12px;
+            font-weight: 700;
             cursor: pointer;
             text-align: center;
             padding: 8px;
@@ -307,8 +316,8 @@
             background: #581c87;
             color: #e9d5ff;
             border: none;
-            font-size: 13px;
-            font-weight: bold;
+            font-size: 12px;
+            font-weight: 700;
             cursor: pointer;
             text-align: center;
             padding: 8px;
@@ -328,7 +337,7 @@
             padding: 12px 24px;
             border-radius: 6px;
             font-size: 14px;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -356,7 +365,7 @@
             gap: 10px;
             border: 1px solid #374151;
         }
-        .modal-content h3 { font-size: 14px; margin-bottom: 5px; color: #fbbf24; text-align: center; }
+        .modal-content h3 { font-size: 14px; margin-bottom: 5px; color: #fbbf24; text-align: center; font-weight: 700; }
         .modal-option {
             background: #374151;
             color: white;
@@ -364,7 +373,7 @@
             padding: 10px;
             border-radius: 4px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 700;
             text-align: center;
         }
         .modal-option:hover { background: #4b5563; }
@@ -430,6 +439,10 @@
     const maxRows = 14;
     let activePairIndex = null;
     let isInitialLoad = true;
+
+    function formatNumber(num) {
+        return num.toLocaleString();
+    }
 
     function getDefaultStructure() {
         return [
@@ -566,7 +579,7 @@
             <div class="card-footer" id="footer-${pairIdx}-${side}" style="${footerStyle}">
                 <button class="title-btn" onclick="openModal(${pairIdx})">${displayTitle}</button>
                 <div class="stats-box">
-                    <div class="stat-limit">TOTAL / LIMIT<br><span id="tot-limit-${pairIdx}-${side}"><span class="stat-total-val" id="tot-val-${pairIdx}-${side}">0</span> / <span class="stat-limit-val" id="lim-val-${pairIdx}-${side}">5000</span></span></div>
+                    <div class="stat-limit">TOTAL / LIMIT<br><span id="tot-limit-${pairIdx}-${side}"><span class="stat-total-val" id="tot-val-${pairIdx}-${side}">0</span> / <span class="stat-limit-val" id="lim-val-${pairIdx}-${side}">5,000</span></span></div>
                     <div class="stat-pay">TOTAL PAY<br><span id="tot-pay-${pairIdx}-${side}">0</span></div>
                 </div>
                 <button class="btn-reset" onclick="confirmReset(${pairIdx}, '${side}')">RESET</button>
@@ -594,9 +607,12 @@
         let left = parts[0] !== undefined ? parts[0].trim() : '';
         let right = parts[1] !== undefined ? parts[1].trim() : '';
         
-        let html = `<span class="part-left">${left} / </span>`;
+        let leftFormatted = !isNaN(left) && left !== '' ? formatNumber(parseFloat(left)) : left;
+        let rightFormatted = !isNaN(right) && right !== '' ? formatNumber(parseFloat(right)) : right;
+
+        let html = `<span class="part-left">${leftFormatted} / </span>`;
         if (right !== '') {
-            html += `<span class="part-right">${right}</span>`;
+            html += `<span class="part-right">${rightFormatted}</span>`;
         }
         return html;
     }
@@ -751,7 +767,7 @@
                 let s = w - p;
 
                 let sendEl = document.getElementById(`send-${pairIdx}-${side}-${r}`);
-                if (sendEl) sendEl.innerText = s;
+                if (sendEl) sendEl.innerText = formatNumber(s);
                 
                 totalWithdraw += w;
                 totalPay += p;
@@ -775,9 +791,9 @@
         let limValEl = document.getElementById(`lim-val-${pairIdx}-${side}`);
         let payEl = document.getElementById(`tot-pay-${pairIdx}-${side}`);
         
-        if (totValEl) totValEl.innerText = totalWithdraw;
-        if (limValEl) limValEl.innerText = remainingLimit;
-        if (payEl) payEl.innerText = totalPay;
+        if (totValEl) totValEl.innerText = formatNumber(totalWithdraw);
+        if (limValEl) limValEl.innerText = formatNumber(remainingLimit);
+        if (payEl) payEl.innerText = formatNumber(totalPay);
 
         return totalPay;
     }
@@ -790,7 +806,7 @@
         });
 
         let grandTotalEl = document.getElementById('grand-total-val');
-        if (grandTotalEl) grandTotalEl.innerText = grandTotal;
+        if (grandTotalEl) grandTotalEl.innerText = formatNumber(grandTotal);
     }
 
     window.exportData = function() {
