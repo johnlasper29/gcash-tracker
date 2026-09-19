@@ -17,7 +17,7 @@
             padding: 10px;
         }
         .container {
-            min-width: 1150px; /* Gipugngan niini nga malahi ang view sa phone, pareho na sa PC */
+            min-width: 1150px;
             margin: 0 auto;
             padding: 0 10px;
         }
@@ -363,7 +363,7 @@
 
 <div class="container">
     <div class="top-header">
-        <h1>GCash Tracker Dashboard</h1>
+        <h1>GCash Tracker Dashboard (Real-time Sync)</h1>
         <div class="grand-total-container">
             GRAND TOTAL: <span id="grand-total-val">0</span>
         </div>
@@ -395,53 +395,81 @@
     </div>
 </div>
 
-<script>
+<!-- Firebase Scripts & Logic -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // --- IMONG FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyChbH-K3pEmcmMyv09dyixFyx0t9kQJPTk",
+        authDomain: "gcash-tracker-91a99.firebaseapp.com",
+        databaseURL: "https://gcash-tracker-91a99-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "gcash-tracker-91a99",
+        storageBucket: "gcash-tracker-91a99.appspot.com",
+        messagingSenderId: "440088070678",
+        appId: "1:440088070678:web:9a2409808b856c6309c337",
+        measurementId: "G-9V01ZKYW9X"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const dbRef = ref(db, 'gcashTracker/data');
+
     let tablePairs = [];
     const maxRows = 14;
     let activePairIndex = null;
+    let isRemoteUpdate = false;
 
-    function initDefaultData() {
-        let saved = localStorage.getItem('gcash_fixed_slots_v8');
-        if (saved) {
-            tablePairs = JSON.parse(saved);
-        } else {
-            tablePairs = [
-                {
-                    category: "RM",
-                    leftVisible: true,
-                    rightVisible: true,
-                    leftCollapsed: false,
-                    rightCollapsed: false,
-                    left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
-                    right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
-                },
-                {
-                    category: "NUBIA",
-                    leftVisible: true,
-                    rightVisible: true,
-                    leftCollapsed: false,
-                    rightCollapsed: false,
-                    left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
-                    right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
-                }
-            ];
-        }
-        
-        tablePairs.forEach(pair => {
-            if (pair.leftCollapsed === undefined) pair.leftCollapsed = false;
-            if (pair.rightCollapsed === undefined) pair.rightCollapsed = false;
+    function getDefaultStructure() {
+        return [
+            {
+                category: "RM",
+                leftVisible: true, rightVisible: true,
+                leftCollapsed: false, rightCollapsed: false,
+                left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
+                right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
+            },
+            {
+                category: "NUBIA",
+                leftVisible: true, rightVisible: true,
+                leftCollapsed: false, rightCollapsed: false,
+                left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
+                right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
+            }
+        ];
+    }
 
-            ['left', 'right'].forEach(side => {
-                if (typeof pair[side].gcash === 'string') {
-                    let oldVal = pair[side].gcash;
-                    pair[side].gcash = Array(14).fill("");
-                    if (oldVal) pair[side].gcash[0] = oldVal;
-                }
-                if (!pair[side].gcash) pair[side].gcash = Array(14).fill("");
+    onValue(dbRef, (snapshot) => {
+        const serverData = snapshot.val();
+        if (serverData) {
+            isRemoteUpdate = true;
+            tablePairs = serverData;
+            
+            tablePairs.forEach(pair => {
+                if (pair.leftCollapsed === undefined) pair.leftCollapsed = false;
+                if (pair.rightCollapsed === undefined) pair.rightCollapsed = false;
+                ['left', 'right'].forEach(side => {
+                    if (!pair[side].gcash) pair[side].gcash = Array(14).fill("");
+                    if (!pair[side].sites) pair[side].sites = Array(14).fill("");
+                    if (!pair[side].withdraws) pair[side].withdraws = Array(14).fill("");
+                });
             });
-        });
 
-        renderDashboard();
+            renderDashboard();
+            isRemoteUpdate = false;
+        } else {
+            tablePairs = getDefaultStructure();
+            saveToFirebase();
+            renderDashboard();
+        }
+    });
+
+    function saveToFirebase() {
+        if (isRemoteUpdate) return;
+        set(dbRef, tablePairs).catch((error) => {
+            console.error("Error saving to Firebase: ", error);
+        });
     }
 
     function renderDashboard() {
@@ -535,13 +563,14 @@
         return card;
     }
 
-    function toggleCollapse(pairIdx, side) {
+    window.toggleCollapse = function(pairIdx, side) {
         if (side === 'left') {
             tablePairs[pairIdx].leftCollapsed = !tablePairs[pairIdx].leftCollapsed;
         } else {
             tablePairs[pairIdx].rightCollapsed = !tablePairs[pairIdx].rightCollapsed;
         }
-        saveAndRender();
+        saveToFirebase();
+        renderDashboard();
     }
 
     function formatWithdrawDisplay(val) {
@@ -557,7 +586,7 @@
         return html;
     }
 
-    function handleWithdrawInput(pairIdx, side, rowIndex, inputEl) {
+    window.handleWithdrawInput = function(pairIdx, side, rowIndex, inputEl) {
         let val = inputEl.value;
         let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
         if (displayEl) {
@@ -566,7 +595,7 @@
         updateData(pairIdx, side);
     }
 
-    function normalizeWithdraw(pairIdx, side, rowIndex, inputEl) {
+    window.normalizeWithdraw = function(pairIdx, side, rowIndex, inputEl) {
         let val = inputEl.value.trim();
         if (val.includes('/')) {
             let parts = val.split('/');
@@ -585,7 +614,7 @@
         updateData(pairIdx, side);
     }
 
-    function handleSiteKey(event, pairIdx, side, rowIndex) {
+    window.handleSiteKey = function(event, pairIdx, side, rowIndex) {
         if (event.key === 'Enter') {
             event.preventDefault();
             let card = document.getElementById(`card-${pairIdx}-${side}`);
@@ -616,58 +645,58 @@
         }
     }
 
-    function addTablePair() {
+    window.addTablePair = function() {
         tablePairs.push({
             category: "NUBIA",
-            leftVisible: true,
-            rightVisible: true,
-            leftCollapsed: false,
-            rightCollapsed: false,
+            leftVisible: true, rightVisible: true,
+            leftCollapsed: false, rightCollapsed: false,
             left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
             right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
         });
-        saveAndRender();
+        saveToFirebase();
+        renderDashboard();
     }
 
-    function confirmReset(pairIdx, side) {
+    window.confirmReset = function(pairIdx, side) {
         if (confirm("Sigurado ka ba nga i-reset kining tableha?")) {
             tablePairs[pairIdx][side].gcash = Array(14).fill("");
             tablePairs[pairIdx][side].sites = Array(14).fill("");
             tablePairs[pairIdx][side].withdraws = Array(14).fill("");
-            saveAndRender();
+            saveToFirebase();
+            renderDashboard();
         }
     }
 
-    function deleteTable(pairIdx, side) {
+    window.deleteTable = function(pairIdx, side) {
         if (confirm("Sigurado ka ba nga i-delete kining tableha?")) {
             tablePairs[pairIdx][side + 'Visible'] = false;
-            
             if (!tablePairs[pairIdx].leftVisible && !tablePairs[pairIdx].rightVisible) {
                 tablePairs.splice(pairIdx, 1);
             }
-            
-            saveAndRender();
+            saveToFirebase();
+            renderDashboard();
         }
     }
 
-    function openModal(pairIdx) {
+    window.openModal = function(pairIdx) {
         activePairIndex = pairIdx;
         document.getElementById('categoryModal').style.display = 'flex';
     }
 
-    function closeModal() {
+    window.closeModal = function() {
         document.getElementById('categoryModal').style.display = 'none';
     }
 
-    function selectCategory(categoryName) {
+    window.selectCategory = function(categoryName) {
         if (activePairIndex !== null) {
             tablePairs[activePairIndex].category = categoryName;
             closeModal();
-            saveAndRender();
+            saveToFirebase();
+            renderDashboard();
         }
     }
 
-    function updateData(pairIdx, side) {
+    window.updateData = function(pairIdx, side) {
         let card = document.getElementById(`card-${pairIdx}-${side}`);
         if (!card) return;
 
@@ -685,18 +714,16 @@
 
         calculateCard(pairIdx, side);
         calculateGrandTotal();
-        localStorage.setItem('gcash_fixed_slots_v8', JSON.stringify(tablePairs));
+        saveToFirebase();
     }
 
     function calculateCard(pairIdx, side) {
         let card = document.getElementById(`card-${pairIdx}-${side}`);
-        let withdrawInputs;
-        
         let totalWithdraw = 0;
         let totalPay = 0;
 
         if (card) {
-            withdrawInputs = card.querySelectorAll('.withdraw-input');
+            let withdrawInputs = card.querySelectorAll('.withdraw-input');
             withdrawInputs.forEach((inp, r) => {
                 let parts = inp.value.split('/');
                 let w = parseFloat(parts[0]) || 0;
@@ -737,38 +764,24 @@
 
     function calculateGrandTotal() {
         let grandTotal = 0;
-
         tablePairs.forEach((pair, pairIdx) => {
-            if (pair.leftVisible) {
-                grandTotal += calculateCard(pairIdx, 'left');
-            }
-            if (pair.rightVisible) {
-                grandTotal += calculateCard(pairIdx, 'right');
-            }
+            if (pair.leftVisible) grandTotal += calculateCard(pairIdx, 'left');
+            if (pair.rightVisible) grandTotal += calculateCard(pairIdx, 'right');
         });
 
         let grandTotalEl = document.getElementById('grand-total-val');
-        if (grandTotalEl) {
-            grandTotalEl.innerText = grandTotal;
-        }
+        if (grandTotalEl) grandTotalEl.innerText = grandTotal;
     }
 
-    function saveAndRender() {
-        localStorage.setItem('gcash_fixed_slots_v8', JSON.stringify(tablePairs));
-        renderDashboard();
-    }
-
-    function exportData() {
-        let saved = localStorage.getItem('gcash_fixed_slots_v8');
-        let blob = new Blob([saved], {type: "application/json"});
+    window.exportData = function() {
+        let dataStr = JSON.stringify(tablePairs, null, 2);
+        let blob = new Blob([dataStr], {type: "application/json"});
         let url = URL.createObjectURL(blob);
         let a = document.createElement('a');
         a.href = url;
         a.download = 'gcash_tracker_backup.json';
         a.click();
     }
-
-    window.onload = initDefaultData;
 </script>
 
 </body>
