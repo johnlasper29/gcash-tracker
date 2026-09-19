@@ -29,6 +29,8 @@
             border-radius: 6px;
             margin-bottom: 20px;
             border: 1px solid #333;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .top-header h1 {
             font-size: 16px;
@@ -69,6 +71,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
+            justify-content: center;
         }
         .card {
             background: #0d1b2a;
@@ -78,11 +81,17 @@
             margin-bottom: 15px;
             position: relative;
             width: 540px;
+            max-width: 100%;
         }
         .placeholder {
             width: 540px;
+            max-width: 100%;
             visibility: hidden;
             margin-bottom: 15px;
+            display: none;
+        }
+        @media(min-width: 1100px) {
+            .placeholder { display: block; }
         }
 
         .table-headers {
@@ -356,6 +365,23 @@
             text-align: center;
         }
         .modal-option:hover { background: #4b5563; }
+
+        /* Mobile Optimization adjustments */
+        @media(max-width: 600px) {
+            body { padding: 4px; }
+            .card { width: 100%; font-size: 13px; }
+            .table-headers { font-size: 13px; grid-template-columns: 25px 95px 115px 115px 70px; }
+            .card-body { grid-template-columns: 115px 115px 115px 70px; }
+            .col-gcash { width: 115px; }
+            .col-site { width: 115px; }
+            .col-withdraw { width: 115px; }
+            .col-send { width: 70px; }
+            .row-input, .withdraw-wrapper, .send-value { font-size: 13px; height: 26px; }
+            .card-footer { grid-template-columns: 100px 1fr 65px 65px; }
+            .title-btn { font-size: 13px; padding: 4px; }
+            .btn-reset, .btn-delete { font-size: 11px; padding: 4px; }
+            .stats-box { font-size: 11px; padding: 2px; }
+        }
     </style>
 </head>
 <body>
@@ -588,65 +614,155 @@
         if (event.key === 'Enter') {
             event.preventDefault();
             let card = document.getElementById(`card-${pairIdx}-${side}`);
-            let siteInput = card.querySelectorAll('.site-input')[rowIndex];
-            let withdrawInput = card.querySelectorAll('.withdraw-input')[rowIndex];
-            let val = siteInput.value;
-
-            let match = val.match(/(.+?)\s+(\d+)[-\/,\s](\d+)/);
-            if (match) {
-                let siteName = match[1].trim();
-                let num1 = match[2];
-                let num2 = match[3];
-
-                siteInput.value = siteName;
-                withdrawInput.value = `${num1} / ${num2}`;
-                
-                let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
-                if (displayEl) displayEl.innerHTML = formatWithdrawDisplay(withdrawInput.value);
-            }
-
-            updateData(pairIdx, side);
-
-            let nextSiteInput = card.querySelectorAll('.site-input')[rowIndex + 1];
-            if (nextSiteInput) {
-                nextSiteInput.focus();
-                nextSiteInput.select();
+            let siteInputs = card.querySelectorAll('.site-input');
+            if (rowIndex + 1 < siteInputs.length) {
+                siteInputs[rowIndex + 1].focus();
+                siteInputs[rowIndex + 1].select();
             }
         }
     }
 
-    function addTablePair() {
-        tablePairs.push({
-            category: "NUBIA",
-            leftVisible: true,
-            rightVisible: true,
-            leftCollapsed: false,
-            rightCollapsed: false,
-            left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
-            right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
+    function updateData(pairIdx, side) {
+        let card = document.getElementById(`card-${pairIdx}-${side}`);
+        if (!card) return;
+
+        let gcashInputs = card.querySelectorAll('.gcash-input');
+        let siteInputs = card.querySelectorAll('.site-input');
+        let withdrawInputs = card.querySelectorAll('.withdraw-input');
+
+        let gcashArr = [];
+        let siteArr = [];
+        let withdrawArr = [];
+
+        for (let r = 0; r < maxRows; r++) {
+            gcashArr.push(gcashInputs[r].value);
+            siteArr.push(siteInputs[r].value);
+            withdrawArr.push(withdrawInputs[r].value);
+        }
+
+        tablePairs[pairIdx][side].gcash = gcashArr;
+        tablePairs[pairIdx][side].sites = siteArr;
+        tablePairs[pairIdx][side].withdraws = withdrawArr;
+
+        saveDataOnly();
+        calculateCard(pairIdx, side);
+        calculateGrandTotal();
+    }
+
+    function calculateCard(pairIdx, side) {
+        let card = document.getElementById(`card-${pairIdx}-${side}`);
+        if (!card) return;
+
+        let gcashInputs = card.querySelectorAll('.gcash-input');
+        let withdrawInputs = card.querySelectorAll('.withdraw-input');
+
+        let totalGcashSum = 0;
+        let totalPaySum = 0;
+
+        for (let r = 0; r < maxRows; r++) {
+            let gVal = parseFloat(gcashInputs[r].value) || 0;
+            totalGcashSum += gVal;
+
+            let wValStr = withdrawInputs[r].value;
+            let sendVal = 0;
+            let payVal = 0;
+
+            if (wValStr.includes('/')) {
+                let parts = wValStr.split('/');
+                let leftNum = parseFloat(parts[0]) || 0;
+                let rightNum = parseFloat(parts[1]) || 0;
+                sendVal = leftNum;
+                payVal = rightNum;
+            } else {
+                sendVal = parseFloat(wValStr) || 0;
+            }
+
+            totalPaySum += payVal;
+
+            let sendEl = document.getElementById(`send-${pairIdx}-${side}-${r}`);
+            if (sendEl) {
+                sendEl.textContent = sendVal !== 0 ? sendVal : '0';
+            }
+        }
+
+        let totValEl = document.getElementById(`tot-val-${pairIdx}-${side}`);
+        let limValEl = document.getElementById(`lim-val-${pairIdx}-${side}`);
+        let totPayEl = document.getElementById(`tot-pay-${pairIdx}-${side}`);
+
+        if (totValEl) totValEl.textContent = totalGcashSum;
+        if (totPayEl) totPayEl.textContent = totalPaySum;
+
+        let limit = 5000;
+        if (limValEl) limValEl.textContent = limit;
+        if (totValEl) {
+            totValEl.style.color = totalGcashSum > limit ? '#ef4444' : '#38bdf8';
+        }
+    }
+
+    function calculateGrandTotal() {
+        let grandTotal = 0;
+        tablePairs.forEach((pair, pairIdx) => {
+            ['left', 'right'].forEach(side => {
+                let card = document.getElementById(`card-${pairIdx}-${side}`);
+                if (card) {
+                    let gcashInputs = card.querySelectorAll('.gcash-input');
+                    gcashInputs.forEach(input => {
+                        grandTotal += parseFloat(input.value) || 0;
+                    });
+                } else {
+                    let tableObj = pair[side];
+                    if (tableObj && tableObj.gcash) {
+                        tableObj.gcash.forEach(val => {
+                            grandTotal += parseFloat(val) || 0;
+                        });
+                    }
+                }
+            });
         });
-        saveAndRender();
+
+        let gtEl = document.getElementById('grand-total-val');
+        if (gtEl) gtEl.textContent = grandTotal;
+    }
+
+    function saveDataOnly() {
+        localStorage.setItem('gcash_fixed_slots_v8', JSON.stringify(tablePairs));
+    }
+
+    function saveAndRender() {
+        saveDataOnly();
+        renderDashboard();
     }
 
     function confirmReset(pairIdx, side) {
-        if (confirm("Sigurado ka ba nga i-reset kining tableha?")) {
-            tablePairs[pairIdx][side].gcash = Array(14).fill("");
-            tablePairs[pairIdx][side].sites = Array(14).fill("");
-            tablePairs[pairIdx][side].withdraws = Array(14).fill("");
+        if (confirm("Seguro ka nga i-reset kining table?")) {
+            tablePairs[pairIdx][side] = {
+                gcash: Array(14).fill(""),
+                sites: Array(14).fill(""),
+                withdraws: Array(14).fill("")
+            };
             saveAndRender();
         }
     }
 
     function deleteTable(pairIdx, side) {
-        if (confirm("Sigurado ka ba nga i-delete kining tableha?")) {
-            tablePairs[pairIdx][side + 'Visible'] = false;
-            
-            if (!tablePairs[pairIdx].leftVisible && !tablePairs[pairIdx].rightVisible) {
+        if (confirm("Gusto ba nimo i-delete o i-hide kini nga table?")) {
+            let pair = tablePairs[pairIdx];
+            if (side === 'left') {
+                pair.leftVisible = false;
+            } else {
+                pair.rightVisible = false;
+            }
+
+            if (!pair.leftVisible && !pair.rightVisible) {
                 tablePairs.splice(pairIdx, 1);
             }
-            
             saveAndRender();
         }
+    }
+
+    function addTablePair() {
+        activePairIndex = null;
+        document.getElementById('categoryModal').style.display = 'flex';
     }
 
     function openModal(pairIdx) {
@@ -656,119 +772,38 @@
 
     function closeModal() {
         document.getElementById('categoryModal').style.display = 'none';
+        activePairIndex = null;
     }
 
-    function selectCategory(categoryName) {
+    function selectCategory(catName) {
         if (activePairIndex !== null) {
-            tablePairs[activePairIndex].category = categoryName;
-            closeModal();
-            saveAndRender();
-        }
-    }
-
-    function updateData(pairIdx, side) {
-        let card = document.getElementById(`card-${pairIdx}-${side}`);
-        if (!card) return;
-
-        let gcashVals = [];
-        let sites = [];
-        let withdraws = [];
-        
-        card.querySelectorAll('.gcash-input').forEach(inp => gcashVals.push(inp.value));
-        card.querySelectorAll('.site-input').forEach(inp => sites.push(inp.value));
-        card.querySelectorAll('.withdraw-input').forEach(inp => withdraws.push(inp.value));
-
-        tablePairs[pairIdx][side].gcash = gcashVals;
-        tablePairs[pairIdx][side].sites = sites;
-        tablePairs[pairIdx][side].withdraws = withdraws;
-
-        calculateCard(pairIdx, side);
-        calculateGrandTotal();
-        localStorage.setItem('gcash_fixed_slots_v8', JSON.stringify(tablePairs));
-    }
-
-    function calculateCard(pairIdx, side) {
-        let card = document.getElementById(`card-${pairIdx}-${side}`);
-        let withdrawInputs;
-        
-        let totalWithdraw = 0;
-        let totalPay = 0;
-
-        if (card) {
-            withdrawInputs = card.querySelectorAll('.withdraw-input');
-            withdrawInputs.forEach((inp, r) => {
-                let parts = inp.value.split('/');
-                let w = parseFloat(parts[0]) || 0;
-                let p = parseFloat(parts[1]) || 0;
-                let s = w - p;
-
-                let sendEl = document.getElementById(`send-${pairIdx}-${side}-${r}`);
-                if (sendEl) sendEl.innerText = s;
-                
-                totalWithdraw += w;
-                totalPay += p;
-            });
+            tablePairs[activePairIndex].category = catName;
         } else {
-            let pair = tablePairs[pairIdx];
-            if (pair && pair[side] && pair[side].withdraws) {
-                pair[side].withdraws.forEach(wVal => {
-                    let parts = (wVal || "").split('/');
-                    let w = parseFloat(parts[0]) || 0;
-                    let p = parseFloat(parts[1]) || 0;
-                    totalWithdraw += w;
-                    totalPay += p;
-                });
-            }
+            tablePairs.push({
+                category: catName,
+                leftVisible: true,
+                rightVisible: true,
+                leftCollapsed: false,
+                rightCollapsed: false,
+                left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
+                right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
+            });
         }
-
-        let remainingLimit = 5000 - totalWithdraw;
-
-        let totValEl = document.getElementById(`tot-val-${pairIdx}-${side}`);
-        let limValEl = document.getElementById(`lim-val-${pairIdx}-${side}`);
-        let payEl = document.getElementById(`tot-pay-${pairIdx}-${side}`);
-        
-        if (totValEl) totValEl.innerText = totalWithdraw;
-        if (limValEl) limValEl.innerText = remainingLimit;
-        if (payEl) payEl.innerText = totalPay;
-
-        return totalPay;
-    }
-
-    function calculateGrandTotal() {
-        let grandTotal = 0;
-
-        tablePairs.forEach((pair, pairIdx) => {
-            if (pair.leftVisible) {
-                grandTotal += calculateCard(pairIdx, 'left');
-            }
-            if (pair.rightVisible) {
-                grandTotal += calculateCard(pairIdx, 'right');
-            }
-        });
-
-        let grandTotalEl = document.getElementById('grand-total-val');
-        if (grandTotalEl) {
-            grandTotalEl.innerText = grandTotal;
-        }
-    }
-
-    function saveAndRender() {
-        localStorage.setItem('gcash_fixed_slots_v8', JSON.stringify(tablePairs));
-        renderDashboard();
+        closeModal();
+        saveAndRender();
     }
 
     function exportData() {
-        let saved = localStorage.getItem('gcash_fixed_slots_v8');
-        let blob = new Blob([saved], {type: "application/json"});
-        let url = URL.createObjectURL(blob);
-        let a = document.createElement('a');
-        a.href = url;
-        a.download = 'gcash_tracker_backup.json';
-        a.click();
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tablePairs, null, 2));
+        let downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "gcash_tracker_backup.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
     }
 
     window.onload = initDefaultData;
 </script>
-
 </body>
 </html>
