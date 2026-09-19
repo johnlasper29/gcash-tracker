@@ -15,9 +15,12 @@
             background-color: #121212;
             color: #ffffff;
             padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .container {
-            min-width: 1150px;
+            width: 1130px;
             margin: 0 auto;
             padding: 0 10px;
         }
@@ -30,6 +33,7 @@
             border-radius: 6px;
             margin-bottom: 20px;
             border: 1px solid #333;
+            width: 100%;
         }
         .top-header h1 {
             font-size: 16px;
@@ -68,22 +72,28 @@
 
         .dashboard-grid {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
             gap: 20px;
+            align-items: center;
+            width: 100%;
+        }
+        .pair-row {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            width: 100%;
         }
         .card {
             background: #0d1b2a;
             border: 2px solid #1e3a8a;
             border-radius: 4px;
             overflow: hidden;
-            margin-bottom: 15px;
             position: relative;
             width: 540px;
         }
         .placeholder {
             width: 540px;
             visibility: hidden;
-            margin-bottom: 15px;
         }
 
         .table-headers {
@@ -309,6 +319,7 @@
             display: flex;
             justify-content: center;
             margin: 25px 0;
+            width: 100%;
         }
         .btn-add-table {
             background: #059669;
@@ -476,21 +487,26 @@
         container.innerHTML = '';
 
         tablePairs.forEach((pair, pairIdx) => {
+            let rowDiv = document.createElement('div');
+            rowDiv.className = 'pair-row';
+
             if (pair.leftVisible) {
-                container.appendChild(createCardElement(pair, pairIdx, 'left'));
+                rowDiv.appendChild(createCardElement(pair, pairIdx, 'left'));
             } else {
                 let placeholder = document.createElement('div');
                 placeholder.className = 'placeholder';
-                container.appendChild(placeholder);
+                rowDiv.appendChild(placeholder);
             }
 
             if (pair.rightVisible) {
-                container.appendChild(createCardElement(pair, pairIdx, 'right'));
+                rowDiv.appendChild(createCardElement(pair, pairIdx, 'right'));
             } else {
                 let placeholder = document.createElement('div');
                 placeholder.className = 'placeholder';
-                container.appendChild(placeholder);
+                rowDiv.appendChild(placeholder);
             }
+
+            container.appendChild(rowDiv);
         });
 
         calculateGrandTotal();
@@ -715,7 +731,6 @@
         calculateCard(pairIdx, side);
         calculateGrandTotal();
 
-        // Gihimoan og delay ang pag-save aron dili ma-interrupt ang imong pag-type
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
             saveToFirebase();
