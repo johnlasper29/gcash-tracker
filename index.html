@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCash Tracker Dashboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            padding: 10px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e1e1e;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        .top-header h1 {
+            font-size: 16px;
+            color: #fbbf24;
+        }
+        .grand-total-container {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+            text-align: center;
+            background: #111827;
+            padding: 6px 20px;
+            border-radius: 4px;
+            border: 1px solid #374151;
+        }
+        .grand-total-container span {
+            color: #4ade80;
+            font-size: 20px;
+            margin-left: 5px;
+        }
+        .header-btns {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-action {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .btn-action:hover { background: #2563eb; }
+
+        .dashboard-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .card {
+            background: #0d1b2a;
+            border: 2px solid #1e3a8a;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            position: relative;
+            width: 540px;
+        }
+        .placeholder {
+            width: 540px;
+            visibility: hidden;
+            margin-bottom: 15px;
+        }
+
+        .table-headers {
+            display: grid;
+            grid-template-columns: 30px 120px 150px 150px 90px;
+            background: #111827;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            border-bottom: 2px solid #1e3a8a;
+            align-items: center;
+        }
+        .table-headers div {
+            padding: 6px 2px;
+            border-right: 1px solid #1f2937;
+        }
+        .col-arrow-header {
+            background: #1f2937;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #38bdf8;
+            font-size: 14px;
+            user-select: none;
+            height: 100%;
+        }
+        .col-arrow-header:hover {
+            background: #374151;
+            color: #ffffff;
+        }
+
+        .table-headers div:nth-child(2) { color: #ffffff; width: 120px; }
+        .table-headers div:nth-child(3) { color: #ffffff; width: 150px; }
+        .table-headers div:nth-child(4) { color: #ffffff; width: 150px; }
+        .table-headers div:nth-child(4) span { color: #4ade80; }
+        .table-headers div:nth-child(5) { color: #fb923c; border-right: none; width: 90px; }
+
+        .card-body {
+            display: grid;
+            grid-template-columns: 150px 150px 150px 90px;
+        }
+        .col-gcash, .col-site, .col-withdraw, .col-send {
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .col-gcash {
+            background: #1d3557;
+            border-right: 1px solid #111827;
+            width: 150px;
+        }
+        .col-site {
+            background: #273449;
+            border-right: 1px solid #111827;
+            width: 150px;
+        }
+        .col-withdraw {
+            background: #163821;
+            border-right: 1px solid #111827;
+            width: 150px;
+        }
+        .col-send {
+            background: #3b2413;
+            align-items: center;
+            justify-content: flex-start;
+            width: 90px;
+        }
+
+        .row-input {
+            width: 100%;
+            height: 22px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #e5e7eb;
+            font-size: 15px;
+            text-align: center;
+            border-radius: 2px;
+            outline: none;
+            font-weight: normal;
+        }
+        .row-input:focus {
+            border-color: #3b82f6;
+            background: #0f172a;
+        }
+        
+        .col-gcash .row-input {
+            color: #fbbf24;
+        }
+        .col-gcash .row-input:first-child {
+            font-size: 18px; 
+        }
+
+        .withdraw-wrapper {
+            position: relative;
+            width: 100%;
+            height: 22px;
+            background: #102617;
+            border: 1px solid #22543d;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .withdraw-wrapper:focus-within {
+            border-color: #3b82f6;
+            background: #0f172a;
+        }
+        .withdraw-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            text-align: center;
+            color: transparent;
+            caret-color: #ffffff;
+            z-index: 2;
+        }
+        .withdraw-display {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            pointer-events: none;
+            z-index: 1;
+            white-space: pre;
+        }
+        .part-left {
+            color: #ffffff;
+        }
+        .part-right {
+            color: #4ade80;
+        }
+        
+        .send-value {
+            width: 100%;
+            height: 22px;
+            color: #fb923c;
+            font-weight: bold;
+            font-size: 15px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-footer {
+            display: grid;
+            grid-template-columns: 140px 1fr 80px 80px;
+            background: #111827;
+            border-top: 2px solid #1e3a8a;
+            align-items: stretch;
+        }
+        .title-btn {
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            padding: 8px;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            text-align: center;
+            border-right: 1px solid #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .title-btn:hover { background: #1d4ed8; }
+
+        .stats-box {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 4px;
+            font-weight: bold;
+            border-right: 1px solid #1f2937;
+        }
+        
+        .stat-limit, .stat-pay {
+            font-size: 13px;
+        }
+        .stat-limit { text-align: center; color: #e5e7eb; }
+        
+        .stat-total-val { font-size: 16px; color: #38bdf8; }
+        .stat-limit-val { font-size: 16px; color: #ef4444; }
+
+        .stat-pay { text-align: center; color: #ffffff; }
+        .stat-pay span { font-size: 16px; color: #4ade80; }
+
+        .btn-reset {
+            background: #7f1d1d;
+            color: #fca5a5;
+            border: none;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            padding: 8px;
+            border-right: 1px solid #1f2937;
+        }
+        .btn-reset:hover { background: #991b1b; color: white; }
+
+        .btn-delete {
+            background: #581c87;
+            color: #e9d5ff;
+            border: none;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            padding: 8px;
+        }
+        .btn-delete:hover { background: #6b21a8; color: white; }
+
+        .add-section {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+        .btn-add-table {
+            background: #059669;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .btn-add-table:hover { background: #047857; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #1f2937;
+            padding: 20px;
+            border-radius: 8px;
+            width: 260px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid #374151;
+        }
+        .modal-content h3 { font-size: 14px; margin-bottom: 5px; color: #fbbf24; text-align: center; }
+        .modal-option {
+            background: #374151;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+        }
+        .modal-option:hover { background: #4b5563; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-header">
+        <h1>GCash Tracker Dashboard</h1>
+        <div class="grand-total-container">
+            GRAND TOTAL: <span id="grand-total-val">0</span>
+        </div>
+        <div class="header-btns">
+            <button class="btn-action" onclick="exportData()">Export Backup</button>
+        </div>
+    </div>
+
+    <div class="dashboard-grid" id="tables-container"></div>
+
+    <div class="add-section">
+        <button class="btn-add-table" onclick="addTablePair()">
+            <span>Add Table Pair</span> 
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+    </div>
+</div>
+
+<div class="modal" id="categoryModal">
+    <div class="modal-content">
+        <h3>Pilia ang Category</h3>
+        <button class="modal-option" onclick="selectCategory('NUBIA')">NUBIA</button>
+        <button class="modal-option" onclick="selectCategory('RM')">RM</button>
+        <button class="modal-option" onclick="selectCategory('VIVO')">VIVO</button>
+        <button class="modal-option" onclick="selectCategory('7PRO')">7PRO</button>
+        <button class="modal-option" onclick="selectCategory('NOTE')">NOTE</button>
+        <button class="modal-option" onclick="selectCategory('MUSIC')">MUSIC</button>
+        <button class="modal-option" style="background:#4b5563; margin-top:5px;" onclick="closeModal()">Close</button>
+    </div>
+</div>
+
+<script>
+    let tablePairs = [];
+    const maxRows = 14;
+    let activePairIndex = null;
+
+    function initDefaultData() {
+        let saved = localStorage.getItem('gcash_fixed_slots_v8');
+        if (saved) {
+            tablePairs = JSON.parse(saved);
+        } else {
+            tablePairs = [
+                {
+                    category: "RM",
+                    leftVisible: true,
+                    rightVisible: true,
+                    leftCollapsed: false,
+                    rightCollapsed: false,
+                    left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
+                    right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
+                },
+                {
+                    category: "NUBIA",
+                    leftVisible: true,
+                    rightVisible: true,
+                    leftCollapsed: false,
+                    rightCollapsed: false,
+                    left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
+                    right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
+                }
+            ];
+        }
+        
+        tablePairs.forEach(pair => {
+            if (pair.leftCollapsed === undefined) pair.leftCollapsed = false;
+            if (pair.rightCollapsed === undefined) pair.rightCollapsed = false;
+
+            ['left', 'right'].forEach(side => {
+                if (typeof pair[side].gcash === 'string') {
+                    let oldVal = pair[side].gcash;
+                    pair[side].gcash = Array(14).fill("");
+                    if (oldVal) pair[side].gcash[0] = oldVal;
+                }
+                if (!pair[side].gcash) pair[side].gcash = Array(14).fill("");
+            });
+        });
+
+        renderDashboard();
+    }
+
+    function renderDashboard() {
+        let container = document.getElementById('tables-container');
+        container.innerHTML = '';
+
+        tablePairs.forEach((pair, pairIdx) => {
+            if (pair.leftVisible) {
+                container.appendChild(createCardElement(pair, pairIdx, 'left'));
+            } else {
+                let placeholder = document.createElement('div');
+                placeholder.className = 'placeholder';
+                container.appendChild(placeholder);
+            }
+
+            if (pair.rightVisible) {
+                container.appendChild(createCardElement(pair, pairIdx, 'right'));
+            } else {
+                let placeholder = document.createElement('div');
+                placeholder.className = 'placeholder';
+                container.appendChild(placeholder);
+            }
+        });
+
+        calculateGrandTotal();
+    }
+
+    function createCardElement(pairObj, pairIdx, side) {
+        let card = document.createElement('div');
+        card.className = 'card';
+        card.id = `card-${pairIdx}-${side}`;
+        
+        let tableObj = pairObj[side];
+        let displayTitle = side === 'left' ? `${pairObj.category} MAIN` : `${pairObj.category} WORK`;
+        let isCollapsed = side === 'left' ? pairObj.leftCollapsed : pairObj.rightCollapsed;
+        let arrowSymbol = isCollapsed ? '▶' : '▼';
+
+        let gcashHTML = '';
+        let sitesHTML = '';
+        let withdrawsHTML = '';
+        let sendsHTML = '';
+
+        for (let r = 0; r < maxRows; r++) {
+            let gVal = tableObj.gcash && tableObj.gcash[r] !== undefined ? tableObj.gcash[r] : '';
+            let siteVal = tableObj.sites && tableObj.sites[r] !== undefined ? tableObj.sites[r] : '';
+            let wVal = tableObj.withdraws && tableObj.withdraws[r] !== undefined ? tableObj.withdraws[r] : '';
+            
+            gcashHTML += `<input type="text" class="row-input gcash-input" value="${gVal}" onfocus="this.select()" oninput="updateData(${pairIdx}, '${side}')">`;
+            sitesHTML += `<input type="text" class="row-input site-input" value="${siteVal}" onfocus="this.select()" onkeydown="handleSiteKey(event, ${pairIdx}, '${side}', ${r})" oninput="updateData(${pairIdx}, '${side}')">`;
+            
+            let displayFormatted = formatWithdrawDisplay(wVal);
+            withdrawsHTML += `
+                <div class="withdraw-wrapper">
+                    <div class="withdraw-display" id="display-${pairIdx}-${side}-${r}">${displayFormatted}</div>
+                    <input type="text" class="withdraw-input" value="${wVal}" onfocus="this.select()" oninput="handleWithdrawInput(${pairIdx}, '${side}', ${r}, this)" onblur="normalizeWithdraw(${pairIdx}, '${side}', ${r}, this)">
+                </div>
+            `;
+            
+            sendsHTML += `<div class="send-value" id="send-${pairIdx}-${side}-${r}">0</div>`;
+        }
+
+        let bodyStyle = isCollapsed ? 'display: none;' : 'display: grid;';
+        let footerStyle = isCollapsed ? 'display: none;' : 'display: grid;';
+
+        card.innerHTML = `
+            <div class="table-headers">
+                <div class="col-arrow-header" onclick="toggleCollapse(${pairIdx}, '${side}')" title="Collapse / Expand">${arrowSymbol}</div>
+                <div>Gcash</div>
+                <div>Site</div>
+                <div>Withdraw<span> / PAY</span></div>
+                <div>SEND</div>
+            </div>
+            <div class="card-body" id="body-${pairIdx}-${side}" style="${bodyStyle}">
+                <div class="col-gcash">${gcashHTML}</div>
+                <div class="col-site">${sitesHTML}</div>
+                <div class="col-withdraw">${withdrawsHTML}</div>
+                <div class="col-send">${sendsHTML}</div>
+            </div>
+            <div class="card-footer" id="footer-${pairIdx}-${side}" style="${footerStyle}">
+                <button class="title-btn" onclick="openModal(${pairIdx})">${displayTitle}</button>
+                <div class="stats-box">
+                    <div class="stat-limit">TOTAL / LIMIT<br><span id="tot-limit-${pairIdx}-${side}"><span class="stat-total-val" id="tot-val-${pairIdx}-${side}">0</span> / <span class="stat-limit-val" id="lim-val-${pairIdx}-${side}">5000</span></span></div>
+                    <div class="stat-pay">TOTAL PAY<br><span id="tot-pay-${pairIdx}-${side}">0</span></div>
+                </div>
+                <button class="btn-reset" onclick="confirmReset(${pairIdx}, '${side}')">RESET</button>
+                <button class="btn-delete" onclick="deleteTable(${pairIdx}, '${side}')">DELETE</button>
+            </div>
+        `;
+        
+        setTimeout(() => calculateCard(pairIdx, side), 0);
+        return card;
+    }
+
+    function toggleCollapse(pairIdx, side) {
+        if (side === 'left') {
+            tablePairs[pairIdx].leftCollapsed = !tablePairs[pairIdx].leftCollapsed;
+        } else {
+            tablePairs[pairIdx].rightCollapsed = !tablePairs[pairIdx].rightCollapsed;
+        }
+        saveAndRender();
+    }
+
+    function formatWithdrawDisplay(val) {
+        if (!val) return '';
+        let parts = val.split('/');
+        let left = parts[0] !== undefined ? parts[0].trim() : '';
+        let right = parts[1] !== undefined ? parts[1].trim() : '';
+        
+        let html = `<span class="part-left">${left} / </span>`;
+        if (right !== '') {
+            html += `<span class="part-right">${right}</span>`;
+        }
+        return html;
+    }
+
+    function handleWithdrawInput(pairIdx, side, rowIndex, inputEl) {
+        let val = inputEl.value;
+        let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
+        if (displayEl) {
+            displayEl.innerHTML = formatWithdrawDisplay(val);
+        }
+        updateData(pairIdx, side);
+    }
+
+    function normalizeWithdraw(pairIdx, side, rowIndex, inputEl) {
+        let val = inputEl.value.trim();
+        if (val.includes('/')) {
+            let parts = val.split('/');
+            let p1 = parts[0].trim();
+            let p2 = parts[1].trim();
+            if (p2 !== '') {
+                inputEl.value = `${p1} / ${p2}`;
+            } else {
+                inputEl.value = `${p1} / `;
+            }
+        }
+        let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
+        if (displayEl) {
+            displayEl.innerHTML = formatWithdrawDisplay(inputEl.value);
+        }
+        updateData(pairIdx, side);
+    }
+
+    function handleSiteKey(event, pairIdx, side, rowIndex) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            let card = document.getElementById(`card-${pairIdx}-${side}`);
+            let siteInput = card.querySelectorAll('.site-input')[rowIndex];
+            let withdrawInput = card.querySelectorAll('.withdraw-input')[rowIndex];
+            let val = siteInput.value;
+
+            let match = val.match(/(.+?)\s+(\d+)[-\/,\s](\d+)/);
+            if (match) {
+                let siteName = match[1].trim();
+                let num1 = match[2];
+                let num2 = match[3];
+
+                siteInput.value = siteName;
+                withdrawInput.value = `${num1} / ${num2}`;
+                
+                let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
+                if (displayEl) displayEl.innerHTML = formatWithdrawDisplay(withdrawInput.value);
+            }
+
+            updateData(pairIdx, side);
+
+            let nextSiteInput = card.querySelectorAll('.site-input')[rowIndex + 1];
+            if (nextSiteInput) {
+                nextSiteInput.focus();
+                nextSiteInput.select();
+            }
+        }
+    }
+
+    function addTablePair() {
+        tablePairs.push({
+            category: "NUBIA",
+            leftVisible: true,
+            rightVisible: true,
+            leftCollapsed: false,
+            rightCollapsed: false,
+            left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
+            right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
+        });
+        saveAndRender();
+    }
+
+    function confirmReset(pairIdx, side) {
+        if (confirm("Sigurado ka ba nga i-reset kining tableha?")) {
+            tablePairs[pairIdx][side].gcash = Array(14).fill("");
+            tablePairs[pairIdx][side].sites = Array(14).fill("");
+            tablePairs[pairIdx][side].withdraws = Array(14).fill("");
+            saveAndRender();
+        }
+    }
+
+    function deleteTable(pairIdx, side) {
+        if (confirm("Sigurado ka ba nga i-delete kining tableha?")) {
+            tablePairs[pairIdx][side + 'Visible'] = false;
+            
+            if (!tablePairs[pairIdx].leftVisible && !tablePairs[pairIdx].rightVisible) {
+                tablePairs.splice(pairIdx, 1);
+            }
+            
+            saveAndRender();
+        }
+    }
+
+    function openModal(pairIdx) {
+        activePairIndex = pairIdx;
+        document.getElementById('categoryModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('categoryModal').style.display = 'none';
+    }
+
+    function selectCategory(categoryName) {
+        if (activePairIndex !== null) {
+            tablePairs[activePairIndex].category = categoryName;
+            closeModal();
+            saveAndRender();
+        }
+    }
+
+    function updateData(pairIdx, side) {
+        let card = document.getElementById(`card-${pairIdx}-${side}`);
+        if (!card) return;
+
+        let gcashVals = [];
+        let sites = [];
+        let withdraws = [];
+        
+        card.querySelectorAll('.gcash-input').forEach(inp => gcashVals.push(inp.value));
+        card.querySelectorAll('.site-input').forEach(inp => sites.push(inp.value));
+        card.querySelectorAll('.withdraw-input').forEach(inp => withdraws.push(inp.value));
+
+        tablePairs[pairIdx][side].gcash = gcashVals;
+        tablePairs[pairIdx][side].sites = sites;
+        tablePairs[pairIdx][side].withdraws = withdraws;
+
+        calculateCard(pairIdx, side);
+        calculateGrandTotal();
+        localStorage.setItem('gcash_fixed_slots_v8', JSON.stringify(tablePairs));
+    }
+
+    function calculateCard(pairIdx, side) {
+        let card = document.getElementById(`card-${pairIdx}-${side}`);
+        let withdrawInputs;
+        
+        let totalWithdraw = 0;
+        let totalPay = 0;
+
+        if (card) {
+            withdrawInputs = card.querySelectorAll('.withdraw-input');
+            withdrawInputs.forEach((inp, r) => {
+                let parts = inp.value.split('/');
+                let w = parseFloat(parts[0]) || 0;
+                let p = parseFloat(parts[1]) || 0;
+                let s = w - p;
+
+                let sendEl = document.getElementById(`send-${pairIdx}-${side}-${r}`);
+                if (sendEl) sendEl.innerText = s;
+                
+                totalWithdraw += w;
+                totalPay += p;
+            });
+        } else {
+            let pair = tablePairs[pairIdx];
+            if (pair && pair[side] && pair[side].withdraws) {
+                pair[side].withdraws.forEach(wVal => {
+                    let parts = (wVal || "").split('/');
+                    let w = parseFloat(parts[0]) || 0;
+                    let p = parseFloat(parts[1]) || 0;
+                    totalWithdraw += w;
+                    totalPay += p;
+                });
+            }
+        }
+
+        let remainingLimit = 5000 - totalWithdraw;
+
+        let totValEl = document.getElementById(`tot-val-${pairIdx}-${side}`);
+        let limValEl = document.getElementById(`lim-val-${pairIdx}-${side}`);
+        let payEl = document.getElementById(`tot-pay-${pairIdx}-${side}`);
+        
+        if (totValEl) totValEl.innerText = totalWithdraw;
+        if (limValEl) limValEl.innerText = remainingLimit;
+        if (payEl) payEl.innerText = totalPay;
+
+        return totalPay;
+    }
+
+    function calculateGrandTotal() {
+        let grandTotal = 0;
+
+        tablePairs.forEach((pair, pairIdx) => {
+            if (pair.leftVisible) {
+                grandTotal += calculateCard(pairIdx, 'left');
+            }
+            if (pair.rightVisible) {
+                grandTotal += calculateCard(pairIdx, 'right');
+            }
+        });
+
+        let grandTotalEl = document.getElementById('grand-total-val');
+        if (grandTotalEl) {
+            grandTotalEl.innerText = grandTotal;
+        }
+    }
+
+    function saveAndRender() {
+        localStorage.setItem('gcash_fixed_slots_v8', JSON.stringify(tablePairs));
+        renderDashboard();
+    }
+
+    function exportData() {
+        let saved = localStorage.getItem('gcash_fixed_slots_v8');
+        let blob = new Blob([saved], {type: "application/json"});
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url;
+        a.download = 'gcash_tracker_backup.json';
+        a.click();
+    }
+
+    window.onload = initDefaultData;
+</script>
+
+</body>
+</html>
