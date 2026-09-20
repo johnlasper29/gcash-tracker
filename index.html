@@ -93,7 +93,7 @@
             background: #0d1b2a;
             border: 2px solid #1e3a8a;
             border-radius: 4px;
-            overflow: hidden;
+            overflow: visible; /* Gi-usab gikan hidden ngadto sa visible para makita ang datalist/dropdown */
             position: relative;
             width: 540px;
             flex-shrink: 0;
@@ -158,6 +158,7 @@
         .col-site {
             background: #273449;
             border-right: 1px solid #111827;
+            position: relative;
         }
         .col-withdraw {
             background: #163821;
@@ -199,6 +200,34 @@
             color: #ffffff;
             font-size: 16px;
             font-weight: 400;
+        }
+
+        /* Custom Autocomplete Suggestions Dropdown */
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #3b82f6;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #0f172a;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .autocomplete-items div {
+            padding: 6px;
+            cursor: pointer;
+            background-color: #1e293b;
+            border-bottom: 1px solid #334151;
+            font-size: 14px;
+            color: #ffffff;
+            text-align: center;
+        }
+        .autocomplete-items div:hover {
+            background-color: #3b82f6;
+            color: #ffffff;
         }
 
         .withdraw-wrapper {
@@ -453,6 +482,18 @@
     let activePairIndex = null;
     let isInitialLoad = true;
 
+    // Lista sa mga sites nga imong gihatag
+    const siteList = [
+        "778go", "k67", "PHB", "t988", "j77", "qpjl", "ttjl", "OKT", "888pinas", "jlwafa", 
+        "bingomax", "567jl", "ufo", "tayahot", "tara", "63slots", "pinasdiamond", "kubra", 
+        "pharcade", "paldocrown", "akaok", "pk11", "philslot", "bpanthers", "bet160", "358jl", 
+        "goodjl", "828jl", "scarabph", "megawagi", "alligator", "jliso", "easyearn", "2djili", 
+        "tablegame+", "durian", "boss7", "bonanza", "pinoy", "malupetph", "FBM", "PH888", 
+        "5djl", "Paldogrown", "D9", "sarimanok", "gogoph", "3u3u", "winpinas", "luckace", 
+        "sinswerte", "moonpinas", "leopard", "jilicasino", "panalolagi", "boompanalo", "SR93", 
+        "gamepinas", "racoon", "200SR"
+    ];
+
     function formatNumber(num) {
         return num.toLocaleString();
     }
@@ -559,7 +600,13 @@
             let wVal = tableObj.withdraws && tableObj.withdraws[r] !== undefined ? tableObj.withdraws[r] : '';
             
             gcashHTML += `<input type="text" class="row-input gcash-input" value="${gVal}" onfocus="this.select()" oninput="updateData(${pairIdx}, '${side}')">`;
-            sitesHTML += `<input type="text" class="row-input site-input" value="${siteVal}" onfocus="this.select()" onkeydown="handleSiteKey(event, ${pairIdx}, '${side}', ${r})" oninput="updateData(${pairIdx}, '${side}')">`;
+            
+            sitesHTML += `
+                <div style="position:relative; width:100%;">
+                    <input type="text" class="row-input site-input" value="${siteVal}" onfocus="this.select()" oninput="handleSiteInput(event, ${pairIdx}, '${side}', ${r})" onkeydown="handleSiteKey(event, ${pairIdx}, '${side}', ${r})" autocomplete="off">
+                    <div id="autocomplete-list-${pairIdx}-${side}-${r}" class="autocomplete-items"></div>
+                </div>
+            `;
             
             let displayFormatted = formatWithdrawDisplay(wVal);
             withdrawsHTML += `
@@ -658,12 +705,51 @@
         updateData(pairIdx, side);
     }
 
+    // Funciton para sa pag-autocomplete sa site samtang nag-type
+    window.handleSiteInput = function(event, pairIdx, side, rowIndex) {
+        let inputEl = event.target;
+        let val = inputEl.value;
+        let listContainer = document.getElementById(`autocomplete-list-${pairIdx}-${side}-${rowIndex}`);
+        
+        listContainer.innerHTML = "";
+        if (!val) {
+            updateData(pairIdx, side);
+            return;
+        }
+
+        let valLower = val.toLowerCase();
+        let matches = siteList.filter(site => site.toLowerCase().includes(valLower));
+
+        matches.forEach(matchText => {
+            let item = document.createElement("div");
+            item.innerHTML = matchText;
+            item.onclick = function() {
+                inputEl.value = matchText;
+                listContainer.innerHTML = "";
+                updateData(pairIdx, side);
+            };
+            listContainer.appendChild(item);
+        });
+
+        updateData(pairIdx, side);
+    }
+
+    // Isara ang autocomplete list kung mo-click gawas
+    document.addEventListener("click", function (e) {
+        if (!e.target.classList.contains('site-input')) {
+            document.querySelectorAll('.autocomplete-items').forEach(el => el.innerHTML = '');
+        }
+    });
+
     window.handleSiteKey = function(event, pairIdx, side, rowIndex) {
         if (event.key === 'Enter') {
             event.preventDefault();
             let card = document.getElementById(`card-${pairIdx}-${side}`);
             let siteInput = card.querySelectorAll('.site-input')[rowIndex];
             let withdrawInput = card.querySelectorAll('.withdraw-input')[rowIndex];
+            let listContainer = document.getElementById(`autocomplete-list-${pairIdx}-${side}-${rowIndex}`);
+            if (listContainer) listContainer.innerHTML = "";
+
             let val = siteInput.value;
 
             let match = val.match(/(.+?)\s+(\d+)[-\/,\s](\d+)/);
