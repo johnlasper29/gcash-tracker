@@ -109,7 +109,8 @@
             grid-template-columns: 30px 22fr 28fr 28fr 18fr;
             background: #111827;
             text-align: center;
-            font-size: 13px;
+            /* Gi-set sa 17px ang font size sa mga table headers */
+            font-size: 17px;
             font-weight: 700;
             border-bottom: 2px solid #1e3a8a;
             align-items: center;
@@ -125,7 +126,7 @@
             align-items: center;
             justify-content: center;
             color: #38bdf8;
-            font-size: 13px;
+            font-size: 15px;
             user-select: none;
             height: 100%;
         }
@@ -174,20 +175,28 @@
             background: #1e293b;
             border: 1px solid #334151;
             color: #e5e7eb;
-            font-size: 12px;
+            /* Gi-set sa 16px ang site inputs */
+            font-size: 16px;
             text-align: center;
             border-radius: 2px;
             outline: none;
-            font-weight: 600;
+            font-weight: 400;
         }
         .row-input:focus {
             border-color: #3b82f6;
             background: #0f172a;
         }
         
-        /* Gi-set sa 16px ang font size ug normal weight (dili bold) ang GCash input boxes */
+        /* Gi-set sa 16px ug normal weight ang GCash input boxes */
         .col-gcash .row-input {
             color: #fbbf24;
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        /* Gi-set sa 16px ang Site inputs */
+        .col-site .row-input {
+            color: #ffffff;
             font-size: 16px;
             font-weight: 400;
         }
@@ -214,12 +223,12 @@
             background: transparent;
             border: none;
             outline: none;
-            font-size: 12px;
+            font-size: 16px;
             text-align: center;
             color: transparent;
             caret-color: #ffffff;
             z-index: 2;
-            font-weight: 600;
+            font-weight: 400;
         }
         .withdraw-display {
             position: absolute;
@@ -228,27 +237,29 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
+            /* Gi-set sa 16px ang withdraw/pay display text */
+            font-size: 16px;
             pointer-events: none;
             z-index: 1;
             white-space: pre;
-            font-weight: 600;
+            font-weight: 400;
         }
         .part-left {
             color: #ffffff;
-            font-weight: 600;
+            font-weight: 400;
         }
         .part-right {
             color: #4ade80;
-            font-weight: 600;
+            font-weight: 400;
         }
         
         .send-value {
             width: 100%;
             height: 26px;
             color: #fb923c;
-            font-weight: 700;
-            font-size: 12px;
+            font-weight: 400;
+            /* Gi-set sa 16px ang Send values sa ubos */
+            font-size: 16px;
             text-align: center;
             display: flex;
             align-items: center;
@@ -288,8 +299,9 @@
         }
         
         .stat-limit, .stat-pay {
-            font-size: 10px;
-            font-weight: 600;
+            /* Gi-set sa 16px ang TOTAL/LIMIT ug TOTAL PAY nga mga header text */
+            font-size: 16px;
+            font-weight: 700;
         }
         .stat-limit { text-align: center; color: #e5e7eb; }
         
@@ -297,7 +309,8 @@
         .stat-limit-val { font-size: 18px; color: #ef4444; font-weight: 700; }
 
         .stat-pay { text-align: center; color: #ffffff; }
-        .stat-pay span { font-size: 12px; color: #4ade80; font-weight: 700; }
+        /* Gi-set sa 15px ang number sa ubos sa TOTAL PAY */
+        .stat-pay span { font-size: 15px; color: #4ade80; font-weight: 700; }
 
         .btn-reset {
             background: #7f1d1d;
