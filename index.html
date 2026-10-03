@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Gitangtang ang maximum-scale para ma-allow ang normal nga zoom in ug zoom out -->
-    <meta name="viewport" content="width=1150, initial-scale=1.0">
+    <meta name="viewport" content="width=1200, initial-scale=1.0">
     <title>GCash Tracker Dashboard</title>
     <!-- Google Font: Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
@@ -21,11 +20,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Gi-lock ang minimum width aron pirmi mag-side by side ang 2 pairs */
-            min-width: 1150px;
+            min-width: 1200px;
         }
         .container {
-            width: 1130px;
+            width: 1180px;
             margin: 0 auto;
             padding: 0 5px;
         }
@@ -45,19 +43,19 @@
             color: #fbbf24;
         }
         .grand-total-container {
-            font-size: 16px;
+            font-size: 20px;
             font-weight: 700;
             color: #ffffff;
             text-align: center;
             background: #111827;
-            padding: 6px 15px;
+            padding: 8px 18px;
             border-radius: 4px;
-            border: 1px solid #374151;
+            border: 1px solid #143322;
         }
         .grand-total-container span {
             color: #4ade80;
-            font-size: 18px;
-            margin-left: 5px;
+            font-size: 22px;
+            margin-left: 8px;
             font-weight: 700;
         }
         .header-btns {
@@ -65,16 +63,16 @@
             gap: 10px;
         }
         .btn-action {
-            background: #3b82f6;
+            background: #143322;
             color: white;
-            border: none;
+            border: 1px solid #1f4e34;
             padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 12px;
             font-weight: 700;
         }
-        .btn-action:hover { background: #2563eb; }
+        .btn-action:hover { background: #1f4e34; }
 
         .dashboard-grid {
             display: flex;
@@ -91,9 +89,9 @@
         }
         .card {
             background: #0d1b2a;
-            border: 2px solid #1e3a8a;
+            border: 2px solid #143322; /* Gi-ilisdan ug dark green */
             border-radius: 4px;
-            overflow: visible; /* Gi-usab gikan hidden ngadto sa visible para makita ang datalist/dropdown */
+            overflow: visible;
             position: relative;
             width: 540px;
             flex-shrink: 0;
@@ -106,13 +104,12 @@
 
         .table-headers {
             display: grid;
-            grid-template-columns: 30px 22fr 28fr 28fr 18fr;
+            grid-template-columns: 30px 25fr 30fr 30fr 15fr;
             background: #111827;
             text-align: center;
-            /* Gi-set sa 17px ang font size sa mga table headers */
             font-size: 17px;
             font-weight: 700;
-            border-bottom: 2px solid #1e3a8a;
+            border-bottom: 2px solid #143322; /* Gi-ilisdan ug dark green */
             align-items: center;
         }
         .table-headers div {
@@ -120,18 +117,18 @@
             border-right: 1px solid #1f2937;
         }
         .col-arrow-header {
-            background: #1f2937;
+            background: #0f2618;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #38bdf8;
+            color: #4ade80;
             font-size: 15px;
             user-select: none;
             height: 100%;
         }
         .col-arrow-header:hover {
-            background: #374151;
+            background: #143322;
             color: #ffffff;
         }
 
@@ -143,7 +140,7 @@
 
         .card-body {
             display: grid;
-            grid-template-columns: 22fr 28fr 28fr 18fr;
+            grid-template-columns: 25fr 30fr 30fr 15fr;
         }
         .col-gcash, .col-site, .col-withdraw, .col-send {
             padding: 4px;
@@ -174,9 +171,8 @@
             width: 100%;
             height: 26px;
             background: #1e293b;
-            border: 1px solid #334151;
+            border: 1px solid #143322;
             color: #e5e7eb;
-            /* Gi-set sa 16px ang site inputs */
             font-size: 16px;
             text-align: center;
             border-radius: 2px;
@@ -184,28 +180,24 @@
             font-weight: 400;
         }
         .row-input:focus {
-            border-color: #3b82f6;
+            border-color: #22c55e;
             background: #0f172a;
         }
         
-        /* Gi-set sa 16px ug normal weight ang GCash input boxes */
         .col-gcash .row-input {
             color: #fbbf24;
             font-size: 16px;
             font-weight: 400;
         }
-
-        /* Gi-set sa 16px ang Site inputs */
         .col-site .row-input {
             color: #ffffff;
             font-size: 16px;
             font-weight: 400;
         }
 
-        /* Custom Autocomplete Suggestions Dropdown */
         .autocomplete-items {
             position: absolute;
-            border: 1px solid #3b82f6;
+            border: 1px solid #22c55e;
             border-bottom: none;
             border-top: none;
             z-index: 99;
@@ -220,13 +212,13 @@
             padding: 6px;
             cursor: pointer;
             background-color: #1e293b;
-            border-bottom: 1px solid #334151;
+            border-bottom: 1px solid #143322;
             font-size: 14px;
             color: #ffffff;
             text-align: center;
         }
         .autocomplete-items div:hover {
-            background-color: #3b82f6;
+            background-color: #143322;
             color: #ffffff;
         }
 
@@ -242,7 +234,7 @@
             justify-content: center;
         }
         .withdraw-wrapper:focus-within {
-            border-color: #3b82f6;
+            border-color: #22c55e;
             background: #0f172a;
         }
         .withdraw-input {
@@ -266,28 +258,62 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* Gi-set sa 16px ang withdraw/pay display text */
             font-size: 16px;
             pointer-events: none;
             z-index: 1;
             white-space: pre;
             font-weight: 400;
         }
-        .part-left {
-            color: #ffffff;
-            font-weight: 400;
+        .part-left { color: #ffffff; font-weight: 400; }
+        .part-right { color: #4ade80; font-weight: 400; }
+        .part-minus { color: #f97316; font-weight: 700; margin-left: 4px; }
+
+        .row-minus-popover {
+            display: none;
+            position: absolute;
+            right: -68px;
+            top: 0;
+            height: 26px;
+            z-index: 50;
+            gap: 2px;
         }
-        .part-right {
-            color: #4ade80;
-            font-weight: 400;
+        .popover-btn-minus {
+            width: 30px;
+            height: 26px;
+            background: #b45309;
+            color: #fef3c7;
+            border: none;
+            border-radius: 2px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        .popover-btn-minus:hover { background: #d97706; color: white; }
+
+        .popover-btn-undo {
+            width: 34px;
+            height: 26px;
+            background: #143322; /* Gi-ilisdan ug dark green */
+            color: #86efac;
+            border: none;
+            border-radius: 2px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .popover-btn-undo:hover { background: #1f4e34; color: white; }
         
         .send-value {
             width: 100%;
             height: 26px;
             color: #fb923c;
             font-weight: 400;
-            /* Gi-set sa 16px ang Send values sa ubos */
             font-size: 16px;
             text-align: center;
             display: flex;
@@ -297,13 +323,13 @@
 
         .card-footer {
             display: grid;
-            grid-template-columns: 120px 1fr 75px 75px;
+            grid-template-columns: 110px 1fr 75px 75px;
             background: #111827;
-            border-top: 2px solid #1e3a8a;
+            border-top: 2px solid #143322; /* Gi-ilisdan ug dark green */
             align-items: stretch;
         }
         .title-btn {
-            background: #1e3a8a;
+            background: #143322; /* Gi-ilisdan ug dark green */
             color: white;
             border: none;
             padding: 8px 4px;
@@ -316,19 +342,17 @@
             align-items: center;
             justify-content: center;
         }
-        .title-btn:hover { background: #1d4ed8; }
+        .title-btn:hover { background: #1f4e34; }
 
         .stats-box {
             display: flex;
             justify-content: space-around;
             align-items: center;
             padding: 2px;
-            font-weight: 600;
             border-right: 1px solid #1f2937;
         }
         
         .stat-limit, .stat-pay {
-            /* Gi-set sa 16px ang TOTAL/LIMIT ug TOTAL PAY nga mga header text */
             font-size: 16px;
             font-weight: 700;
         }
@@ -338,12 +362,11 @@
         .stat-limit-val { font-size: 18px; color: #ef4444; font-weight: 700; }
 
         .stat-pay { text-align: center; color: #ffffff; }
-        /* Gi-set sa 15px ang number sa ubos sa TOTAL PAY */
         .stat-pay span { font-size: 15px; color: #4ade80; font-weight: 700; }
 
         .btn-reset {
-            background: #7f1d1d;
-            color: #fca5a5;
+            background: #991b1b;
+            color: #fee2e2;
             border: none;
             font-size: 11px;
             font-weight: 700;
@@ -352,7 +375,7 @@
             padding: 8px 2px;
             border-right: 1px solid #1f2937;
         }
-        .btn-reset:hover { background: #991b1b; color: white; }
+        .btn-reset:hover { background: #b91c1c; color: white; }
 
         .btn-delete {
             background: #581c87;
@@ -398,27 +421,28 @@
             z-index: 1000;
         }
         .modal-content {
-            background: #1f2937;
+            background: #143322; /* Gi-ilisdan ug dark green */
             padding: 20px;
             border-radius: 8px;
-            width: 260px;
+            width: 300px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            border: 1px solid #374151;
+            gap: 12px;
+            border: 1px solid #22543d;
         }
-        .modal-content h3 { font-size: 14px; margin-bottom: 5px; color: #fbbf24; text-align: center; font-weight: 700; }
+        .modal-content h3 { font-size: 16px; margin-bottom: 5px; color: #fbbf24; text-align: center; font-weight: 700; }
         .modal-option {
-            background: #374151;
+            background: #0f2618; /* Gi-ilisdan ug mas itom nga dark green */
             color: white;
-            border: none;
-            padding: 10px;
+            border: 1px solid #22543d;
+            padding: 12px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 700;
+            font-size: 18px;
             text-align: center;
         }
-        .modal-option:hover { background: #4b5563; }
+        .modal-option:hover { background: #1f4e34; }
     </style>
 </head>
 <body>
@@ -446,14 +470,14 @@
 
 <div class="modal" id="categoryModal">
     <div class="modal-content">
-        <h3>Pilia ang Category</h3>
+        <h3>SELECT PHONES</h3>
         <button class="modal-option" onclick="selectCategory('NUBIA')">NUBIA</button>
         <button class="modal-option" onclick="selectCategory('RM')">RM</button>
         <button class="modal-option" onclick="selectCategory('VIVO')">VIVO</button>
         <button class="modal-option" onclick="selectCategory('7PRO')">7PRO</button>
         <button class="modal-option" onclick="selectCategory('NOTE')">NOTE</button>
         <button class="modal-option" onclick="selectCategory('MUSIC')">MUSIC</button>
-        <button class="modal-option" style="background:#4b5563; margin-top:5px;" onclick="closeModal()">Close</button>
+        <button class="modal-option" style="background:#0f2618; margin-top:5px; font-size: 16px;" onclick="closeModal()">Close</button>
     </div>
 </div>
 
@@ -481,8 +505,8 @@
     const maxRows = 14;
     let activePairIndex = null;
     let isInitialLoad = true;
+    let isCreatingNew = false;
 
-    // Lista sa mga sites nga imong gihatag
     const siteList = [
         "778go", "k67", "PHB", "t988", "j77", "qpjl", "ttjl", "OKT", "888pinas", "jlwafa", 
         "bingomax", "567jl", "ufo", "tayahot", "tara", "63slots", "pinasdiamond", "kubra", 
@@ -504,15 +528,15 @@
                 category: "RM",
                 leftVisible: true, rightVisible: true,
                 leftCollapsed: false, rightCollapsed: false,
-                left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
-                right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
+                left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) },
+                right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) }
             },
             {
                 category: "NUBIA",
                 leftVisible: true, rightVisible: true,
                 leftCollapsed: false, rightCollapsed: false,
-                left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
-                right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
+                left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) },
+                right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) }
             }
         ];
     }
@@ -528,6 +552,13 @@
                     if (!pair[side].gcash) pair[side].gcash = Array(14).fill("");
                     if (!pair[side].sites) pair[side].sites = Array(14).fill("");
                     if (!pair[side].withdraws) pair[side].withdraws = Array(14).fill("");
+                    if (!pair[side].manualPayDeductions) {
+                        let oldVal = pair[side].manualPayDeduction || 0;
+                        pair[side].manualPayDeductions = Array(14).fill(0);
+                        if (oldVal > 0 && pair[side].withdraws.length > 0) {
+                            pair[side].manualPayDeductions[0] = oldVal;
+                        }
+                    }
                 });
             });
 
@@ -598,6 +629,7 @@
             let gVal = tableObj.gcash && tableObj.gcash[r] !== undefined ? tableObj.gcash[r] : '';
             let siteVal = tableObj.sites && tableObj.sites[r] !== undefined ? tableObj.sites[r] : '';
             let wVal = tableObj.withdraws && tableObj.withdraws[r] !== undefined ? tableObj.withdraws[r] : '';
+            let mDeduction = tableObj.manualPayDeductions && tableObj.manualPayDeductions[r] ? tableObj.manualPayDeductions[r] : 0;
             
             gcashHTML += `<input type="text" class="row-input gcash-input" value="${gVal}" onfocus="this.select()" oninput="updateData(${pairIdx}, '${side}')">`;
             
@@ -608,11 +640,15 @@
                 </div>
             `;
             
-            let displayFormatted = formatWithdrawDisplay(wVal);
+            let displayFormatted = formatWithdrawDisplay(wVal, mDeduction);
             withdrawsHTML += `
-                <div class="withdraw-wrapper">
+                <div class="withdraw-wrapper" onclick="toggleRowMinus(${pairIdx}, '${side}', ${r}, event)">
                     <div class="withdraw-display" id="display-${pairIdx}-${side}-${r}">${displayFormatted}</div>
                     <input type="text" class="withdraw-input" value="${wVal}" onfocus="this.select()" oninput="handleWithdrawInput(${pairIdx}, '${side}', ${r}, this)" onblur="normalizeWithdraw(${pairIdx}, '${side}', ${r}, this)">
+                    <div class="row-minus-popover" id="popover-minus-${pairIdx}-${side}-${r}">
+                        <button class="popover-btn-minus" onclick="applyRowAdjustment(event, ${pairIdx}, '${side}', ${r}, 5)" title="Minus 5">-5</button>
+                        <button class="popover-btn-undo" onclick="applyRowAdjustment(event, ${pairIdx}, '${side}', ${r}, -5)" title="Undo 5">+5</button>
+                    </div>
                 </div>
             `;
             
@@ -642,13 +678,67 @@
                     <div class="stat-limit">TOTAL / LIMIT<br><span id="tot-limit-${pairIdx}-${side}"><span class="stat-total-val" id="tot-val-${pairIdx}-${side}">0</span> / <span class="stat-limit-val" id="lim-val-${pairIdx}-${side}">5,000</span></span></div>
                     <div class="stat-pay">TOTAL PAY<br><span id="tot-pay-${pairIdx}-${side}">0</span></div>
                 </div>
-                <button class="btn-reset" onclick="confirmReset(${pairIdx}, '${side}')">RESET</button>
+                <button class="btn-reset" onclick="resetTable(${pairIdx}, '${side}')">RESET</button>
                 <button class="btn-delete" onclick="deleteTable(${pairIdx}, '${side}')">DELETE</button>
             </div>
         `;
         
         setTimeout(() => calculateCard(pairIdx, side), 0);
         return card;
+    }
+
+    window.toggleRowMinus = function(pairIdx, side, rowIndex, event) {
+        document.querySelectorAll('.row-minus-popover').forEach(el => el.style.display = 'none');
+        let popover = document.getElementById(`popover-minus-${pairIdx}-${side}-${rowIndex}`);
+        if (popover) {
+            popover.style.display = 'flex';
+            event.stopPropagation();
+        }
+    }
+
+    document.addEventListener("click", function(e) {
+        if (!e.target.closest('.withdraw-wrapper') && !e.target.closest('.row-minus-popover')) {
+            document.querySelectorAll('.row-minus-popover').forEach(el => el.style.display = 'none');
+        }
+    });
+
+    window.applyRowAdjustment = function(event, pairIdx, side, rowIndex, amount) {
+        event.stopPropagation();
+        if (!tablePairs[pairIdx][side].manualPayDeductions) {
+            tablePairs[pairIdx][side].manualPayDeductions = Array(14).fill(0);
+        }
+        
+        let currentDeduction = tablePairs[pairIdx][side].manualPayDeductions[rowIndex] || 0;
+        let newDeduction = currentDeduction + amount;
+        if (newDeduction < 0) newDeduction = 0;
+
+        tablePairs[pairIdx][side].manualPayDeductions[rowIndex] = newDeduction;
+        
+        saveToFirebase();
+        
+        let card = document.getElementById(`card-${pairIdx}-${side}`);
+        let wInp = card.querySelectorAll('.withdraw-input')[rowIndex];
+        let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
+        if (displayEl) {
+            displayEl.innerHTML = formatWithdrawDisplay(wInp.value, newDeduction);
+        }
+
+        calculateCard(pairIdx, side);
+        calculateGrandTotal();
+        document.querySelectorAll('.row-minus-popover').forEach(el => el.style.display = 'none');
+    }
+
+    window.resetTable = function(pairIdx, side) {
+        if (confirm("Sigurado ka ba nga i-reset kining tableha?")) {
+            tablePairs[pairIdx][side] = {
+                gcash: Array(14).fill(""),
+                sites: Array(14).fill(""),
+                withdraws: Array(14).fill(""),
+                manualPayDeductions: Array(14).fill(0)
+            };
+            saveToFirebase();
+            renderDashboard();
+        }
     }
 
     window.toggleCollapse = function(pairIdx, side) {
@@ -661,9 +751,9 @@
         renderDashboard();
     }
 
-    function formatWithdrawDisplay(val) {
-        if (!val) return '';
-        let parts = val.split('/');
+    function formatWithdrawDisplay(val, mDeduction = 0) {
+        if (!val && mDeduction === 0) return '';
+        let parts = (val || "").split('/');
         let left = parts[0] !== undefined ? parts[0].trim() : '';
         let right = parts[1] !== undefined ? parts[1].trim() : '';
         
@@ -671,17 +761,21 @@
         let rightFormatted = !isNaN(right) && right !== '' ? formatNumber(parseFloat(right)) : right;
 
         let html = `<span class="part-left">${leftFormatted} / </span>`;
-        if (right !== '') {
+        if (right !== '' || left !== '') {
             html += `<span class="part-right">${rightFormatted}</span>`;
+        }
+        if (mDeduction > 0) {
+            html += `<span class="part-minus">-${mDeduction}</span>`;
         }
         return html;
     }
 
     window.handleWithdrawInput = function(pairIdx, side, rowIndex, inputEl) {
         let val = inputEl.value;
+        let mDeduction = tablePairs[pairIdx][side].manualPayDeductions ? (tablePairs[pairIdx][side].manualPayDeductions[rowIndex] || 0) : 0;
         let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
         if (displayEl) {
-            displayEl.innerHTML = formatWithdrawDisplay(val);
+            displayEl.innerHTML = formatWithdrawDisplay(val, mDeduction);
         }
         updateData(pairIdx, side);
     }
@@ -698,14 +792,14 @@
                 inputEl.value = `${p1} / `;
             }
         }
+        let mDeduction = tablePairs[pairIdx][side].manualPayDeductions ? (tablePairs[pairIdx][side].manualPayDeductions[rowIndex] || 0) : 0;
         let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
         if (displayEl) {
-            displayEl.innerHTML = formatWithdrawDisplay(inputEl.value);
+            displayEl.innerHTML = formatWithdrawDisplay(inputEl.value, mDeduction);
         }
         updateData(pairIdx, side);
     }
 
-    // Funciton para sa pag-autocomplete sa site samtang nag-type
     window.handleSiteInput = function(event, pairIdx, side, rowIndex) {
         let inputEl = event.target;
         let val = inputEl.value;
@@ -734,7 +828,6 @@
         updateData(pairIdx, side);
     }
 
-    // Isara ang autocomplete list kung mo-click gawas
     document.addEventListener("click", function (e) {
         if (!e.target.classList.contains('site-input')) {
             document.querySelectorAll('.autocomplete-items').forEach(el => el.innerHTML = '');
@@ -761,8 +854,9 @@
                 siteInput.value = siteName;
                 withdrawInput.value = `${num1} / ${num2}`;
                 
+                let mDeduction = tablePairs[pairIdx][side].manualPayDeductions ? (tablePairs[pairIdx][side].manualPayDeductions[rowIndex] || 0) : 0;
                 let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
-                if (displayEl) displayEl.innerHTML = formatWithdrawDisplay(withdrawInput.value);
+                if (displayEl) displayEl.innerHTML = formatWithdrawDisplay(withdrawInput.value, mDeduction);
             }
 
             updateData(pairIdx, side);
@@ -776,25 +870,16 @@
     }
 
     window.addTablePair = function() {
+        isCreatingNew = true;
         tablePairs.push({
-            category: "NUBIA",
+            category: "",
             leftVisible: true, rightVisible: true,
             leftCollapsed: false, rightCollapsed: false,
-            left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") },
-            right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill("") }
+            left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) },
+            right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) }
         });
-        saveToFirebase();
-        renderDashboard();
-    }
-
-    window.confirmReset = function(pairIdx, side) {
-        if (confirm("Sigurado ka ba nga i-reset kining tableha?")) {
-            tablePairs[pairIdx][side].gcash = Array(14).fill("");
-            tablePairs[pairIdx][side].sites = Array(14).fill("");
-            tablePairs[pairIdx][side].withdraws = Array(14).fill("");
-            saveToFirebase();
-            renderDashboard();
-        }
+        
+        openModal(tablePairs.length - 1);
     }
 
     window.deleteTable = function(pairIdx, side) {
@@ -815,11 +900,18 @@
 
     window.closeModal = function() {
         document.getElementById('categoryModal').style.display = 'none';
+        if (isCreatingNew && activePairIndex !== null && tablePairs[activePairIndex] && !tablePairs[activePairIndex].category) {
+            tablePairs.splice(activePairIndex, 1);
+            isCreatingNew = false;
+            activePairIndex = null;
+        }
+        renderDashboard();
     }
 
     window.selectCategory = function(categoryName) {
         if (activePairIndex !== null) {
             tablePairs[activePairIndex].category = categoryName;
+            isCreatingNew = false;
             closeModal();
             saveToFirebase();
             renderDashboard();
@@ -857,66 +949,57 @@
         let totalWithdraw = 0;
         let totalPay = 0;
 
+        let pair = tablePairs[pairIdx];
+        let mDeductions = pair && pair[side] && pair[side].manualPayDeductions ? pair[side].manualPayDeductions : Array(14).fill(0);
+
         if (card) {
             let withdrawInputs = card.querySelectorAll('.withdraw-input');
             withdrawInputs.forEach((inp, r) => {
                 let parts = inp.value.split('/');
                 let w = parseFloat(parts[0]) || 0;
                 let p = parseFloat(parts[1]) || 0;
-                let s = w - p;
+                let mD = mDeductions[r] || 0;
+                let effectiveP = p - mD;
+                if (effectiveP < 0) effectiveP = 0;
 
                 let sendEl = document.getElementById(`send-${pairIdx}-${side}-${r}`);
-                if (sendEl) sendEl.innerText = formatNumber(s);
+                let standardSend = w - p; 
+                if (sendEl) sendEl.innerText = formatNumber(standardSend);
                 
                 totalWithdraw += w;
-                totalPay += p;
+                totalPay += effectiveP;
             });
-        } else {
-            let pair = tablePairs[pairIdx];
-            if (pair && pair[side] && pair[side].withdraws) {
-                pair[side].withdraws.forEach(wVal => {
-                    let parts = (wVal || "").split('/');
-                    let w = parseFloat(parts[0]) || 0;
-                    let p = parseFloat(parts[1]) || 0;
-                    totalWithdraw += w;
-                    totalPay += p;
-                });
-            }
         }
 
         let remainingLimit = 5000 - totalWithdraw;
 
         let totValEl = document.getElementById(`tot-val-${pairIdx}-${side}`);
         let limValEl = document.getElementById(`lim-val-${pairIdx}-${side}`);
-        let payEl = document.getElementById(`tot-pay-${pairIdx}-${side}`);
-        
+        let totPayEl = document.getElementById(`tot-pay-${pairIdx}-${side}`);
+
         if (totValEl) totValEl.innerText = formatNumber(totalWithdraw);
         if (limValEl) limValEl.innerText = formatNumber(remainingLimit);
-        if (payEl) payEl.innerText = formatNumber(totalPay);
-
-        return totalPay;
+        if (totPayEl) totPayEl.innerText = formatNumber(totalPay);
     }
 
     function calculateGrandTotal() {
-        let grandTotal = 0;
+        let grandTotalPay = 0;
         tablePairs.forEach((pair, pairIdx) => {
-            if (pair.leftVisible) grandTotal += calculateCard(pairIdx, 'left');
-            if (pair.rightVisible) grandTotal += calculateCard(pairIdx, 'right');
+            ['left', 'right'].forEach(side => {
+                if (pair[side + 'Visible'] && pair[side] && pair[side].withdraws) {
+                    let mDeductions = pair[side].manualPayDeductions || Array(14).fill(0);
+                    pair[side].withdraws.forEach((wVal, r) => {
+                        let parts = (wVal || "").split('/');
+                        let p = parseFloat(parts[1]) || 0;
+                        let mD = mDeductions[r] || 0;
+                        let effectiveP = p - mD;
+                        if (effectiveP < 0) effectiveP = 0;
+                        grandTotalPay += effectiveP;
+                    });
+                }
+            });
         });
-
-        let grandTotalEl = document.getElementById('grand-total-val');
-        if (grandTotalEl) grandTotalEl.innerText = formatNumber(grandTotal);
-    }
-
-    window.exportData = function() {
-        let dataStr = JSON.stringify(tablePairs, null, 2);
-        let blob = new Blob([dataStr], {type: "application/json"});
-        let url = URL.createObjectURL(blob);
-        let a = document.createElement('a');
-        a.href = url;
-        a.download = 'gcash_tracker_backup.json';
-        a.click();
-        URL.revokeObjectURL(url);
+        document.getElementById('grand-total-val').innerText = formatNumber(grandTotalPay);
     }
 </script>
 
