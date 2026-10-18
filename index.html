@@ -89,7 +89,7 @@
         }
         .card {
             background: #0d1b2a;
-            border: 2px solid #143322; /* Gi-ilisdan ug dark green */
+            border: 2px solid #143322;
             border-radius: 4px;
             overflow: visible;
             position: relative;
@@ -109,7 +109,7 @@
             text-align: center;
             font-size: 17px;
             font-weight: 700;
-            border-bottom: 2px solid #143322; /* Gi-ilisdan ug dark green */
+            border-bottom: 2px solid #143322;
             align-items: center;
         }
         .table-headers div {
@@ -296,7 +296,7 @@
         .popover-btn-undo {
             width: 34px;
             height: 26px;
-            background: #143322; /* Gi-ilisdan ug dark green */
+            background: #143322;
             color: #86efac;
             border: none;
             border-radius: 2px;
@@ -325,11 +325,11 @@
             display: grid;
             grid-template-columns: 110px 1fr 75px 75px;
             background: #111827;
-            border-top: 2px solid #143322; /* Gi-ilisdan ug dark green */
+            border-top: 2px solid #143322;
             align-items: stretch;
         }
         .title-btn {
-            background: #143322; /* Gi-ilisdan ug dark green */
+            background: #143322;
             color: white;
             border: none;
             padding: 8px 4px;
@@ -421,7 +421,7 @@
             z-index: 1000;
         }
         .modal-content {
-            background: #143322; /* Gi-ilisdan ug dark green */
+            background: #143322;
             padding: 20px;
             border-radius: 8px;
             width: 300px;
@@ -432,7 +432,7 @@
         }
         .modal-content h3 { font-size: 16px; margin-bottom: 5px; color: #fbbf24; text-align: center; font-weight: 700; }
         .modal-option {
-            background: #0f2618; /* Gi-ilisdan ug mas itom nga dark green */
+            background: #0f2618;
             color: white;
             border: 1px solid #22543d;
             padding: 12px;
@@ -541,9 +541,21 @@
         ];
     }
 
+    // Subukan munang mag-load mula sa localStorage para hindi agad mabura sa refresh
+    const localData = localStorage.getItem('gcashTracker_data');
+    if (localData) {
+        try {
+            tablePairs = JSON.parse(localData);
+            renderDashboard();
+            isInitialLoad = false;
+        } catch(e) {
+            console.error("Local storage parse error:", e);
+        }
+    }
+
     onValue(dbRef, (snapshot) => {
         const serverData = snapshot.val();
-        if (serverData) {
+        if (serverData && serverData.length > 0) {
             tablePairs = serverData;
             tablePairs.forEach(pair => {
                 if (pair.leftCollapsed === undefined) pair.leftCollapsed = false;
@@ -561,20 +573,17 @@
                     }
                 });
             });
-
-            if (isInitialLoad) {
-                renderDashboard();
-                isInitialLoad = false;
-            }
-        } else {
-            tablePairs = getDefaultStructure();
-            saveToFirebase();
+            localStorage.setItem('gcashTracker_data', JSON.stringify(tablePairs));
             renderDashboard();
-            isInitialLoad = false;
+        } else if (!localData) {
+            tablePairs = getDefaultStructure();
+            saveToDataStore();
+            renderDashboard();
         }
     });
 
-    function saveToFirebase() {
+    function saveToDataStore() {
+        localStorage.setItem('gcashTracker_data', JSON.stringify(tablePairs));
         set(dbRef, tablePairs).catch((error) => {
             console.error("Error saving to Firebase: ", error);
         });
@@ -582,6 +591,7 @@
 
     function renderDashboard() {
         let container = document.getElementById('tables-container');
+        if (!container) return;
         container.innerHTML = '';
 
         tablePairs.forEach((pair, pairIdx) => {
@@ -616,7 +626,7 @@
         card.id = `card-${pairIdx}-${side}`;
         
         let tableObj = pairObj[side];
-        let displayTitle = side === 'left' ? `${pairObj.category} MAIN` : `${pairObj.category} WORK`;
+        let displayTitle = side === 'left' ? `${pairObj.category || 'SELECT'} MAIN` : `${pairObj.category || 'SELECT'} WORK`;
         let isCollapsed = side === 'left' ? pairObj.leftCollapsed : pairObj.rightCollapsed;
         let arrowSymbol = isCollapsed ? '▶' : '▼';
 
@@ -714,7 +724,7 @@
 
         tablePairs[pairIdx][side].manualPayDeductions[rowIndex] = newDeduction;
         
-        saveToFirebase();
+        saveToDataStore();
         
         let card = document.getElementById(`card-${pairIdx}-${side}`);
         let wInp = card.querySelectorAll('.withdraw-input')[rowIndex];
@@ -736,7 +746,7 @@
                 withdraws: Array(14).fill(""),
                 manualPayDeductions: Array(14).fill(0)
             };
-            saveToFirebase();
+            saveToDataStore();
             renderDashboard();
         }
     }
@@ -747,7 +757,7 @@
         } else {
             tablePairs[pairIdx].rightCollapsed = !tablePairs[pairIdx].rightCollapsed;
         }
-        saveToFirebase();
+        saveToDataStore();
         renderDashboard();
     }
 
@@ -888,7 +898,7 @@
             if (!tablePairs[pairIdx].leftVisible && !tablePairs[pairIdx].rightVisible) {
                 tablePairs.splice(pairIdx, 1);
             }
-            saveToFirebase();
+            saveToDataStore();
             renderDashboard();
         }
     }
@@ -913,7 +923,7 @@
             tablePairs[activePairIndex].category = categoryName;
             isCreatingNew = false;
             closeModal();
-            saveToFirebase();
+            saveToDataStore();
             renderDashboard();
         }
     }
@@ -940,8 +950,8 @@
 
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
-            saveToFirebase();
-        }, 800);
+            saveToDataStore();
+        }, 500);
     }
 
     function calculateCard(pairIdx, side) {
@@ -999,7 +1009,8 @@
                 }
             });
         });
-        document.getElementById('grand-total-val').innerText = formatNumber(grandTotalPay);
+        let grandEl = document.getElementById('grand-total-val');
+        if (grandEl) grandEl.innerText = formatNumber(grandTotalPay);
     }
 </script>
 
