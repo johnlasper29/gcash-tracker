@@ -551,7 +551,7 @@
         }
     }
 
-    // 2. Pamati sa Firebase sa tinuod nga oras para mag-sync sa PC ug Phone
+    // 2. Pamati sa Firebase sa tinuod nga oras para mag-sync sa PC ug Phone (Protektado batok sa pagputol samtang nag-type)
     onValue(dbRef, (snapshot) => {
         const serverData = snapshot.val();
         if (serverData && serverData.length > 0) {
@@ -573,7 +573,11 @@
                 });
             });
             localStorage.setItem('gcashTracker_data', JSON.stringify(tablePairs));
-            renderDashboard();
+            
+            // Dili i-re-render kung naa kay gi-type o gisulatan sa input box karon
+            if (!document.activeElement || (!document.activeElement.classList.contains('row-input') && !document.activeElement.classList.contains('withdraw-input'))) {
+                renderDashboard();
+            }
         } else if (!localData) {
             tablePairs = getDefaultStructure();
             saveDataToBoth();
