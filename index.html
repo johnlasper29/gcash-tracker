@@ -497,6 +497,10 @@
         measurementId: "G-9V01ZKYW9X"
     };
 
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const dbRef = ref(db, 'gcashTracker/data');
+
     let tablePairs = [];
     const maxRows = 14;
     let activePairIndex = null;
@@ -536,7 +540,7 @@
         ];
     }
 
-    // 1. Siguraduha nga mo-load dayon gikan sa LocalStorage aron dili ma-blanko samtang naghulat sa Firebase
+    // 1. Unahon dayon pag-load gikan sa localStorage aron dili ma-blanko samtang naghulat sa Firebase
     const localData = localStorage.getItem('gcashTracker_data');
     if (localData) {
         try {
@@ -547,55 +551,41 @@
         }
     }
 
-    if (tablePairs.length === 0) {
-        tablePairs = getDefaultStructure();
-        renderDashboard();
-    }
-
-    // 2. Sulayi pagkonekta sa Firebase kung pwede
-    try {
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const dbRef = ref(db, 'gcashTracker/data');
-
-        onValue(dbRef, (snapshot) => {
-            const serverData = snapshot.val();
-            if (serverData && serverData.length > 0) {
-                tablePairs = serverData;
-                tablePairs.forEach(pair => {
-                    if (pair.leftCollapsed === undefined) pair.leftCollapsed = false;
-                    if (pair.rightCollapsed === undefined) pair.rightCollapsed = false;
-                    ['left', 'right'].forEach(side => {
-                        if (!pair[side].gcash) pair[side].gcash = Array(14).fill("");
-                        if (!pair[side].sites) pair[side].sites = Array(14).fill("");
-                        if (!pair[side].withdraws) pair[side].withdraws = Array(14).fill("");
-                        if (!pair[side].manualPayDeductions) {
-                            let oldVal = pair[side].manualPayDeduction || 0;
-                            pair[side].manualPayDeductions = Array(14).fill(0);
-                            if (oldVal > 0 && pair[side].withdraws.length > 0) {
-                                pair[side].manualPayDeductions[0] = oldVal;
-                            }
+    // 2. Pamati sa Firebase sa tinuod nga oras para mag-sync sa PC ug Phone
+    onValue(dbRef, (snapshot) => {
+        const serverData = snapshot.val();
+        if (serverData && serverData.length > 0) {
+            tablePairs = serverData;
+            tablePairs.forEach(pair => {
+                if (pair.leftCollapsed === undefined) pair.leftCollapsed = false;
+                if (pair.rightCollapsed === undefined) pair.rightCollapsed = false;
+                ['left', 'right'].forEach(side => {
+                    if (!pair[side].gcash) pair[side].gcash = Array(14).fill("");
+                    if (!pair[side].sites) pair[side].sites = Array(14).fill("");
+                    if (!pair[side].withdraws) pair[side].withdraws = Array(14).fill("");
+                    if (!pair[side].manualPayDeductions) {
+                        let oldVal = pair[side].manualPayDeduction || 0;
+                        pair[side].manualPayDeductions = Array(14).fill(0);
+                        if (oldVal > 0 && pair[side].withdraws.length > 0) {
+                            pair[side].manualPayDeductions[0] = oldVal;
                         }
-                    });
+                    }
                 });
-                localStorage.setItem('gcashTracker_data', JSON.stringify(tablePairs));
-                renderDashboard();
-            }
-        }, (error) => {
-            console.error("Firebase connection error (Nag-offline mode):", error);
-        });
-
-        window.saveToDataStore = function() {
-            localStorage.setItem('gcashTracker_data', JSON.stringify(tablePairs));
-            set(dbRef, tablePairs).catch((error) => {
-                console.error("Error saving to Firebase: ", error);
             });
-        }
-    } catch (err) {
-        console.error("Firebase init failed, running local storage only:", err);
-        window.saveToDataStore = function() {
             localStorage.setItem('gcashTracker_data', JSON.stringify(tablePairs));
+            renderDashboard();
+        } else if (!localData) {
+            tablePairs = getDefaultStructure();
+            saveDataToBoth();
+            renderDashboard();
         }
+    });
+
+    function saveDataToBoth() {
+        localStorage.setItem('gcashTracker_data', JSON.stringify(tablePairs));
+        set(dbRef, tablePairs).catch((error) => {
+            console.error("Error saving to Firebase: ", error);
+        });
     }
 
     function renderDashboard() {
@@ -733,7 +723,7 @@
 
         tablePairs[pairIdx][side].manualPayDeductions[rowIndex] = newDeduction;
         
-        if (typeof saveToDataStore === 'function') saveToDataStore();
+        saveDataToBoth();
         
         let card = document.getElementById(`card-${pairIdx}-${side}`);
         let wInp = card.querySelectorAll('.withdraw-input')[rowIndex];
@@ -755,7 +745,7 @@
                 withdraws: Array(14).fill(""),
                 manualPayDeductions: Array(14).fill(0)
             };
-            if (typeof saveToDataStore === 'function') saveToDataStore();
+            saveDataToBoth();
             renderDashboard();
         }
     }
@@ -766,7 +756,7 @@
         } else {
             tablePairs[pairIdx].rightCollapsed = !tablePairs[pairIdx].rightCollapsed;
         }
-        if (typeof saveToDataStore === 'function') saveToDataStore();
+        saveDataToBoth();
         renderDashboard();
     }
 
@@ -906,7 +896,7 @@
             if (!tablePairs[pairIdx].leftVisible && !tablePairs[pairIdx].rightVisible) {
                 tablePairs.splice(pairIdx, 1);
             }
-            if (typeof saveToDataStore === 'function') saveToDataStore();
+            saveDataToBoth();
             renderDashboard();
         }
     }
@@ -925,7 +915,7 @@
         if (activePairIndex !== null) {
             tablePairs[activePairIndex].category = categoryName;
             closeModal();
-            if (typeof saveToDataStore === 'function') saveToDataStore();
+            saveDataToBoth();
             renderDashboard();
         }
     }
@@ -952,7 +942,7 @@
 
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
-            if (typeof saveToDataStore === 'function') saveToDataStore();
+            saveDataToBoth();
         }, 500);
     }
 
