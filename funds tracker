@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Accounts Dashboard</title>
+    <!-- Google Font: Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', Arial, sans-serif;
+        }
+        body {
+            background-color: #070a0f;
+            color: #f3f4f6;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 440px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        /* App Header / Balance Card */
+        .balance-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #1f2937;
+            border-radius: 16px;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #059669, #0284c7);
+        }
+        .balance-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .balance-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: #34d399;
+            letter-spacing: -0.5px;
+        }
+
+        /* Accounts List Container */
+        .accounts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Individual Account Item Card */
+        .row-item {
+            display: grid;
+            grid-template-columns: 1fr 130px 36px;
+            align-items: center;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 10px 14px;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .row-item:hover {
+            border-color: #334155;
+        }
+
+        /* Left Side: Brand/Name Wrapper */
+        .name-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #334155;
+            padding-left: 10px;
+            height: 36px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .brand-icon {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .brand-icon svg {
+            width: 100%;
+            height: 100%;
+            transition: fill 0.3s ease;
+        }
+
+        .input-name {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #f1f5f9;
+            font-size: 15px;
+            font-weight: 600;
+            outline: none;
+        }
+        .input-name::placeholder {
+            color: #475569;
+        }
+
+        /* Right Side: Amount Input (Walay box, limpyo) */
+        .input-amount {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #f3f4f6;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: right;
+            padding: 8px 4px;
+            outline: none;
+            transition: color 0.2s ease;
+        }
+        .input-amount:focus {
+            color: #34d399;
+        }
+        .input-amount::placeholder {
+            color: #334155;
+        }
+
+        /* Delete Row Button */
+        .btn-delete-row {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 32px;
+            width: 32px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            margin-left: 4px;
+        }
+        .btn-delete-row:hover {
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Bottom Action Button Area */
+        .actions-area {
+            display: flex;
+            width: 100%;
+            max-width: 440px;
+        }
+        .btn-action {
+            flex: 1;
+            background: #059669;
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .btn-action:hover {
+            background: #10b981;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- App-Style Balance Card -->
+    <div class="balance-card">
+        <div class="balance-title">Total Available Funds</div>
+        <div class="balance-amount" id="grand-total">0</div>
+    </div>
+
+    <!-- Accounts List -->
+    <div class="accounts-list" id="rows-container"></div>
+</div>
+
+<div class="actions-area">
+    <button class="btn-action" onclick="addRow()">+ Add Account</button>
+</div>
+
+<script>
+    let defaultData = [
+        { name: "Cash", amount: "2,320" },
+        { name: "GCash", amount: "10,005" },
+        { name: "MariBank", amount: "338,063" },
+        { name: "Maya Business", amount: "40,294" },
+        { name: "Janice", amount: "1,777" },
+        { name: "Kim", amount: "2,000" },
+        { name: "Cherry", amount: "5,890" }
+    ];
+
+    let fundsData = [];
+
+    function loadData() {
+        let saved = localStorage.getItem('bankAppTracker_lighter_data');
+        if (saved) {
+            try {
+                fundsData = JSON.parse(saved);
+            } catch(e) {
+                fundsData = defaultData;
+            }
+        } else {
+            fundsData = defaultData;
+        }
+        renderTable();
+    }
+
+    function saveData() {
+        localStorage.setItem('bankAppTracker_lighter_data', JSON.stringify(fundsData));
+    }
+
+    function formatNumber(num) {
+        return num.toLocaleString();
+    }
+
+    function parseNum(val) {
+        if (!val) return 0;
+        let clean = val.toString().replace(/,/g, '');
+        let parsed = parseFloat(clean);
+        return isNaN(parsed) ? 0 : parsed;
+    }
+
+    // Gipahayagan gamay ang background gradient aron mas nindot tan-awon
+    function getBrandInfo(name) {
+        if (!name) return { color: '#475569', bg: 'linear-gradient(90deg, rgba(71, 85, 105, 0.18) 0%, rgba(17, 24, 39, 0.9) 80%)', icon: `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>` };
+        let lower = name.toLowerCase().trim();
+        
+        if (lower.includes('gcash')) {
+            return {
+                color: '#0099ff', // Mas hayag nga GCash blue
+                bg: 'linear-gradient(90deg, rgba(0, 153, 255, 0.28) 0%, rgba(17, 24, 39, 0.9) 80%)',
+                icon: `<svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>`
+            };
+        } else if (lower.includes('maribank')) {
+            return {
+                color: '#fb923c', // Mas hayag nga MariBank orange
+                bg: 'linear-gradient(90deg, rgba(251, 146, 60, 0.28) 0%, rgba(17, 24, 39, 0.9) 80%)',
+                icon: `<svg viewBox="0 0 24 24"><path d="M11.5 1L2 6v2h19V6m-9.5 4c-3.87 0-7 3.13-7 7s3.13 7 7 7 7-3.13 7-7-3.13-7-7-7m0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>`
+            };
+        } else if (lower.includes('maya')) {
+            return {
+                color: '#22d3ee', // Mas hayag nga Maya cyan/green
+                bg: 'linear-gradient(90deg, rgba(34, 211, 238, 0.28) 0%, rgba(17, 24, 39, 0.9) 80%)',
+                icon: `<svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>`
+            };
+        } else if (lower.includes('cash')) {
+            return {
+                color: '#34d399', // Mas hayag nga Cash green
+                bg: 'linear-gradient(90deg, rgba(52, 211, 153, 0.28) 0%, rgba(17, 24, 39, 0.9) 80%)',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.64 0-.83-.41-1.64-2.92-2.23-3.22-.75-4.42-1.83-4.42-3.5 0-1.64 1.32-2.86 3.12-3.21V4h2.67v1.95c1.4.31 2.7 1.25 2.92 3.01h-1.97c-.12-.8-.71-1.41-2.13-1.41-1.35 0-2.05.59-2.05 1.44 0 .75.48 1.32 2.62 1.83 3.39.81 4.72 1.83 4.72 3.65 0 1.73-1.3 2.96-3.23 3.34z"/></svg>`
+            };
+        } else {
+            return {
+                color: '#94a3b8',
+                bg: 'linear-gradient(90deg, rgba(148, 163, 184, 0.2) 0%, rgba(17, 24, 39, 0.9) 80%)',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`
+            };
+        }
+    }
+
+    function renderTable() {
+        let container = document.getElementById('rows-container');
+        container.innerHTML = '';
+
+        fundsData.forEach((item, index) => {
+            let rowDiv = document.createElement('div');
+            rowDiv.className = 'row-item';
+
+            let brand = getBrandInfo(item.name);
+            rowDiv.style.background = brand.bg;
+
+            rowDiv.innerHTML = `
+                <div class="name-input-wrapper" id="wrapper-${index}" style="border-left-color: ${brand.color};">
+                    <div class="brand-icon" id="icon-${index}" style="fill: ${brand.color};">${brand.icon}</div>
+                    <input type="text" class="input-name" value="${item.name}" placeholder="Account name..." oninput="updateItemName(${index}, this)">
+                </div>
+                <input type="text" class="input-amount" value="${item.amount}" placeholder="0" oninput="handleAmountInput(${index}, this)" onblur="formatAmountBlur(${index}, this)">
+                <button class="btn-delete-row" onclick="deleteRow(${index})" title="Delete account">×</button>
+            `;
+            container.appendChild(rowDiv);
+        });
+
+        calculateGrandTotal();
+    }
+
+    function updateItemName(index, inputEl) {
+        fundsData[index]['name'] = inputEl.value;
+        let brand = getBrandInfo(inputEl.value);
+        
+        let rowEl = inputEl.closest('.row-item');
+        let wrapper = document.getElementById(`wrapper-${index}`);
+        let icon = document.getElementById(`icon-${index}`);
+        
+        rowEl.style.background = brand.bg;
+        wrapper.style.borderLeftColor = brand.color;
+        icon.style.fill = brand.color;
+        icon.innerHTML = brand.icon;
+
+        saveData();
+    }
+
+    function handleAmountInput(index, inputEl) {
+        fundsData[index]['amount'] = inputEl.value;
+        saveData();
+        calculateGrandTotal();
+    }
+
+    function formatAmountBlur(index, inputEl) {
+        let rawVal = inputEl.value.trim();
+        if (rawVal !== "") {
+            let num = parseNum(rawVal);
+            if (num > 0 || rawVal === "0") {
+                inputEl.value = formatNumber(num);
+                fundsData[index]['amount'] = inputEl.value;
+                saveData();
+            }
+        }
+        calculateGrandTotal();
+    }
+
+    function calculateGrandTotal() {
+        let total = 0;
+        fundsData.forEach(item => {
+            total += parseNum(item.amount);
+        });
+        document.getElementById('grand-total').innerText = formatNumber(total);
+    }
+
+    function addRow() {
+        fundsData.push({ name: "", amount: "" });
+        saveData();
+        renderTable();
+    }
+
+    function deleteRow(index) {
+        fundsData.splice(index, 1);
+        saveData();
+        renderTable();
+    }
+
+    loadData();
+</script>
+
+</body>
+</html>
