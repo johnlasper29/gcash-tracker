@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1200, initial-scale=1.0">
+    <meta name="viewport" content="width=1580, initial-scale=1.0">
     <title>GCash Tracker Dashboard</title>
     <!-- Google Font: Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
@@ -20,10 +20,25 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: 1200px;
+            min-width: 1580px;
+        }
+        .main-layout {
+            display: flex;
+            gap: 20px;
+            width: 1540px;
+            margin: 0 auto;
+            align-items: flex-start;
+            justify-content: center;
+        }
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 1140px;
         }
         .container {
-            width: 1180px;
+            width: 1140px;
             margin: 0 auto;
             padding: 0 5px;
         }
@@ -73,6 +88,45 @@
             font-weight: 700;
         }
         .btn-action:hover { background: #1f4e34; }
+
+        /* Notes Sidebar Style (Mas lapad nga 380px ug 22px font size) */
+        .notes-sidebar {
+            width: 380px;
+            background: #1e1e1e;
+            border: 2px solid #143322;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            height: calc(100vh - 40px);
+            position: sticky;
+            top: 10px;
+        }
+        .notes-header {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notes-textarea {
+            width: 100%;
+            flex: 1;
+            background: #121212;
+            border: 1px solid #333;
+            color: #e5e7eb;
+            padding: 12px;
+            font-size: 22px;
+            border-radius: 4px;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+        }
+        .notes-textarea:focus {
+            border-color: #22c55e;
+        }
 
         .dashboard-grid {
             display: flex;
@@ -447,24 +501,36 @@
 </head>
 <body>
 
-<div class="container">
-    <div class="top-header">
-        <h1>GCash Tracker Dashboard</h1>
-        <div class="grand-total-container">
-            GRAND TOTAL: <span id="grand-total-val">0</span>
-        </div>
-        <div class="header-btns">
-            <button class="btn-action" onclick="exportData()">Export Backup</button>
+<div class="main-layout">
+    <div class="content-area">
+        <div class="container">
+            <div class="top-header">
+                <h1>GCash Tracker Dashboard</h1>
+                <div class="grand-total-container">
+                    GRAND TOTAL: <span id="grand-total-val">0</span>
+                </div>
+                <div class="header-btns">
+                    <button class="btn-action" onclick="exportData()">Export Backup</button>
+                </div>
+            </div>
+
+            <div class="dashboard-grid" id="tables-container"></div>
+
+            <div class="add-section">
+                <button class="btn-add-table" onclick="addTablePair()">
+                    <span>Add Table Pair</span> 
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+            </div>
         </div>
     </div>
 
-    <div class="dashboard-grid" id="tables-container"></div>
-
-    <div class="add-section">
-        <button class="btn-add-table" onclick="addTablePair()">
-            <span>Add Table Pair</span> 
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        </button>
+    <!-- Notes Sidebar (Mas lapad nga 380px) -->
+    <div class="notes-sidebar">
+        <div class="notes-header">
+            <span>NOTES / MEMO</span>
+        </div>
+        <textarea id="dashboard-notes" class="notes-textarea" placeholder="I-type diri ang imong mga notes o kopya..."></textarea>
     </div>
 </div>
 
@@ -500,11 +566,11 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const dbRef = ref(db, 'gcashTracker/data');
+    const notesRef = ref(db, 'gcashTracker/notes');
 
     let tablePairs = [];
     const maxRows = 14;
     let activePairIndex = null;
-    let isCreatingNew = false;
 
     const siteList = [
         "778go", "k67", "PHB", "t988", "j77", "qpjl", "ttjl", "OKT", "888pinas", "jlwafa", 
@@ -540,7 +606,13 @@
         ];
     }
 
-    // 1. Unahon dayon pag-load gikan sa localStorage aron dili ma-blanko samtang naghulat sa Firebase
+    // Load Local Storage for Notes
+    const localNotes = localStorage.getItem('gcashTracker_notes');
+    if (localNotes !== null) {
+        document.getElementById('dashboard-notes').value = localNotes;
+    }
+
+    // 1. Load Local Storage for Data
     const localData = localStorage.getItem('gcashTracker_data');
     if (localData) {
         try {
@@ -551,7 +623,7 @@
         }
     }
 
-    // 2. Pamati sa Firebase sa tinuod nga oras para mag-sync sa PC ug Phone (Protektado batok sa pagputol samtang nag-type)
+    // 2. Firebase Listener for Data
     onValue(dbRef, (snapshot) => {
         const serverData = snapshot.val();
         if (serverData && serverData.length > 0) {
@@ -574,8 +646,7 @@
             });
             localStorage.setItem('gcashTracker_data', JSON.stringify(tablePairs));
             
-            // Dili i-re-render kung naa kay gi-type o gisulatan sa input box karon
-            if (!document.activeElement || (!document.activeElement.classList.contains('row-input') && !document.activeElement.classList.contains('withdraw-input'))) {
+            if (!document.activeElement || (!document.activeElement.classList.contains('row-input') && !document.activeElement.classList.contains('withdraw-input') && document.activeElement.id !== 'dashboard-notes')) {
                 renderDashboard();
             }
         } else if (!localData) {
@@ -585,11 +656,66 @@
         }
     });
 
+    // Firebase Listener for Notes
+    onValue(notesRef, (snapshot) => {
+        const serverNotes = snapshot.val();
+        const notesArea = document.getElementById('dashboard-notes');
+        if (serverNotes !== null && document.activeElement !== notesArea) {
+            notesArea.value = serverNotes;
+            localStorage.setItem('gcashTracker_notes', serverNotes);
+        }
+    });
+
     function saveDataToBoth() {
         localStorage.setItem('gcashTracker_data', JSON.stringify(tablePairs));
         set(dbRef, tablePairs).catch((error) => {
             console.error("Error saving to Firebase: ", error);
         });
+    }
+
+    let notesTimeout = null;
+    document.getElementById('dashboard-notes').addEventListener('input', function() {
+        let val = this.value;
+        localStorage.setItem('gcashTracker_notes', val);
+        clearTimeout(notesTimeout);
+        notesTimeout = setTimeout(() => {
+            set(notesRef, val).catch(err => console.error("Error saving notes:", err));
+        }, 500);
+    });
+
+    // Automatic update sa GCash numbers, limit (dili i-apil kung naka-collapse o gi-hide), ug permanent G-Cash MINE💚
+    function updateAutomaticNotes() {
+        let autoLines = [];
+        tablePairs.forEach(pair => {
+            ['left', 'right'].forEach(side => {
+                let isVisible = side === 'left' ? pair.leftVisible : pair.rightVisible;
+                let isCollapsed = side === 'left' ? pair.leftCollapsed : pair.rightCollapsed;
+                
+                // Kung visible ug DILI naka-collapse, i-apil sa notes
+                if (isVisible && !isCollapsed && pair[side] && pair[side].gcash && pair[side].withdraws) {
+                    pair[side].gcash.forEach((gNum, r) => {
+                        let cleanNum = (gNum || "").trim();
+                        if (cleanNum !== "") {
+                            let wVal = pair[side].withdraws[r] || "";
+                            let parts = wVal.split('/');
+                            let w = parseFloat(parts[0]) || 0;
+                            let limit = 5000 - w;
+                            autoLines.push(`${cleanNum} - ${formatNumber(limit)} limit`);
+                        }
+                    });
+                }
+            });
+        });
+
+        // Idugang ang permanent G-Cash MINE💚 sa pinakaubos
+        autoLines.push("G-Cash MINE💚");
+
+        let notesArea = document.getElementById('dashboard-notes');
+        if (notesArea && document.activeElement !== notesArea) {
+            notesArea.value = autoLines.join('\n');
+            localStorage.setItem('gcashTracker_notes', notesArea.value);
+            set(notesRef, notesArea.value).catch(err => console.error("Error syncing auto notes:", err));
+        }
     }
 
     function renderDashboard() {
@@ -621,6 +747,7 @@
         });
 
         calculateGrandTotal();
+        updateAutomaticNotes();
     }
 
     function createCardElement(pairObj, pairIdx, side) {
@@ -738,6 +865,7 @@
 
         calculateCard(pairIdx, side);
         calculateGrandTotal();
+        updateAutomaticNotes();
         document.querySelectorAll('.row-minus-popover').forEach(el => el.style.display = 'none');
     }
 
@@ -943,6 +1071,7 @@
 
         calculateCard(pairIdx, side);
         calculateGrandTotal();
+        updateAutomaticNotes();
 
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
