@@ -2,1181 +2,758 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1580, initial-scale=1.0">
-    <title>GCash Tracker Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bank Accounts Dashboard</title>
+    <!-- Custom App Icons -->
+    <link rel="apple-touch-icon" href="https://johnlasper29.github.io/funds-tracker/logo.png">
+    <link rel="icon" type="image/png" href="https://johnlasper29.github.io/funds-tracker/logo.png">
+    <link rel="manifest" href="manifest.json">
+
     <!-- Google Font: Montserrat -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             font-family: 'Montserrat', Arial, sans-serif;
+            user-select: none;
         }
         body {
-            background-color: #121212;
-            color: #ffffff;
-            padding: 10px;
+            background-color: #070a0f;
+            color: #f3f4f6;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: 1580px;
+            min-height: 100vh;
         }
-        .main-layout {
+
+        /* Pattern Lock Screen Overlay */
+        #lock-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #070a0f;
             display: flex;
-            gap: 20px;
-            width: 1540px;
-            margin: 0 auto;
-            align-items: flex-start;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
+            z-index: 9999;
+            padding: 16px;
         }
-        .content-area {
-            flex: 1;
+        .lock-container {
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
-            max-width: 1140px;
+            gap: 18px;
         }
-        .container {
-            width: 1140px;
-            margin: 0 auto;
-            padding: 0 5px;
-        }
-        .top-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #1e1e1e;
-            padding: 10px 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            border: 1px solid #333;
-            width: 100%;
-        }
-        .top-header h1 {
-            font-size: 15px;
-            color: #fbbf24;
-        }
-        .grand-total-container {
+        .welcome-user-text {
             font-size: 20px;
             font-weight: 700;
-            color: #ffffff;
-            text-align: center;
-            background: #111827;
-            padding: 8px 18px;
-            border-radius: 4px;
-            border: 1px solid #143322;
+            color: #34d399;
+            letter-spacing: -0.3px;
         }
-        .grand-total-container span {
-            color: #4ade80;
-            font-size: 22px;
-            margin-left: 8px;
-            font-weight: 700;
+        .lock-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
         }
-        .header-btns {
+        .pattern-grid {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            background: #0f172a;
+            border: 1px solid #1f2937;
+            border-radius: 28px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            padding: 28px;
+            touch-action: none;
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.6);
+        }
+        .pattern-dot {
+            width: 20px;
+            height: 20px;
+            background: #334155;
+            border-radius: 50%;
+            margin: auto;
+            position: relative;
+            transition: transform 0.2s, background 0.2s;
+            pointer-events: none;
+        }
+        .pattern-dot.active {
+            background: #059669;
+            transform: scale(1.6);
+            box-shadow: 0 0 16px rgba(5, 150, 105, 0.8);
+        }
+        #pattern-svg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        .lock-error {
+            color: #f87171;
+            font-size: 13px;
+            min-height: 18px;
+        }
+        .pattern-actions {
             display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        /* Main App Container */
+        .app-container {
+            width: 100%;
+            max-width: 440px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        /* App Header / Balance Card */
+        .balance-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #1f2937;
+            border-radius: 16px;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #059669, #0284c7);
+        }
+        .balance-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .balance-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: #34d399;
+            letter-spacing: -0.5px;
+        }
+
+        /* Accounts List Container */
+        .accounts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Individual Account Item Card */
+        .row-item {
+            display: grid;
+            grid-template-columns: 1fr 130px 36px;
+            align-items: center;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 10px 14px;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .row-item:hover {
+            border-color: #334155;
+        }
+
+        /* Left Side: Brand/Name Wrapper */
+        .name-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #334155;
+            padding-left: 10px;
+            height: 36px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .brand-icon {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .brand-icon svg {
+            width: 100%;
+            height: 100%;
+            transition: fill 0.3s ease;
+        }
+
+        .input-name {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #f1f5f9;
+            font-size: 15px;
+            font-weight: 600;
+            outline: none;
+        }
+        .input-name::placeholder {
+            color: #475569;
+        }
+
+        /* Right Side: Amount Input */
+        .input-amount {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #f3f4f6;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: right;
+            padding: 8px 4px;
+            outline: none;
+            transition: color 0.2s ease;
+        }
+        .input-amount:focus {
+            color: #34d399;
+        }
+        .input-amount::placeholder {
+            color: #334155;
+        }
+
+        /* Delete Row Button */
+        .btn-delete-row {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 32px;
+            width: 32px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            margin-left: 4px;
+        }
+        .btn-delete-row:hover {
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Bottom Action Button Area */
+        .actions-area {
+            display: flex;
+            width: 100%;
+            max-width: 440px;
             gap: 10px;
         }
         .btn-action {
-            background: #143322;
-            color: white;
-            border: 1px solid #1f4e34;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 700;
-        }
-        .btn-action:hover { background: #1f4e34; }
-
-        /* Notes Sidebar Style (380px width) */
-        .notes-sidebar {
-            width: 380px;
-            background: #1e1e1e;
-            border: 2px solid #143322;
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            padding: 12px;
-            height: calc(100vh - 40px);
-            position: sticky;
-            top: 10px;
-        }
-        
-        /* Big 22px Copy Button Header */
-        .btn-copy-main {
-            width: 100%;
-            background: #059669;
-            color: white;
-            border: 1px solid #047857;
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 22px;
-            font-weight: 700;
-            cursor: pointer;
-            text-align: center;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            transition: background 0.2s;
-        }
-        .btn-copy-main:hover { background: #047857; }
-        
-        /* Notepad Textarea Style (20px font, clickable anywhere) */
-        .notepad-textarea {
-            width: 100%;
             flex: 1;
-            background: #121212;
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 10px;
-            color: #e5e7eb;
-            font-size: 20px;
-            font-weight: 600;
-            resize: none;
-            outline: none;
-            line-height: 1.5;
-        }
-        .notepad-textarea:focus {
-            border-color: #22c55e;
-            background: #0f172a;
-        }
-
-        .dashboard-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: center;
-            width: 100%;
-        }
-        .pair-row {
-            display: flex;
-            gap: 25px;
-            justify-content: center;
-            width: 100%;
-        }
-        .card {
-            background: #0d1b2a;
-            border: 2px solid #143322;
-            border-radius: 4px;
-            overflow: visible;
-            position: relative;
-            width: 540px;
-            flex-shrink: 0;
-        }
-        .placeholder {
-            width: 540px;
-            display: block;
-            flex-shrink: 0;
-        }
-
-        .table-headers {
-            display: grid;
-            grid-template-columns: 30px 25fr 30fr 30fr 15fr;
-            background: #111827;
-            text-align: center;
-            font-size: 17px;
-            font-weight: 700;
-            border-bottom: 2px solid #143322;
-            align-items: center;
-        }
-        .table-headers div {
-            padding: 6px 2px;
-            border-right: 1px solid #1f2937;
-        }
-        .col-arrow-header {
-            background: #0f2618;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #4ade80;
-            font-size: 15px;
-            user-select: none;
-            height: 100%;
-        }
-        .col-arrow-header:hover {
-            background: #143322;
-            color: #ffffff;
-        }
-
-        .table-headers div:nth-child(2) { color: #ffffff; }
-        .table-headers div:nth-child(3) { color: #ffffff; }
-        .table-headers div:nth-child(4) { color: #ffffff; }
-        .table-headers div:nth-child(4) span { color: #4ade80; }
-        .table-headers div:nth-child(5) { color: #fb923c; border-right: none; }
-
-        .card-body {
-            display: grid;
-            grid-template-columns: 25fr 30fr 30fr 15fr;
-        }
-        .col-gcash, .col-site, .col-withdraw, .col-send {
-            padding: 4px;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-        .col-gcash {
-            background: #1d3557;
-            border-right: 1px solid #111827;
-        }
-        .col-site {
-            background: #273449;
-            border-right: 1px solid #111827;
-            position: relative;
-        }
-        .col-withdraw {
-            background: #163821;
-            border-right: 1px solid #111827;
-        }
-        .col-send {
-            background: #3b2413;
-            align-items: center;
-            justify-content: flex-start;
-        }
-
-        .row-input {
-            width: 100%;
-            height: 26px;
-            background: #1e293b;
-            border: 1px solid #143322;
-            color: #e5e7eb;
-            font-size: 16px;
-            text-align: center;
-            border-radius: 2px;
-            outline: none;
-            font-weight: 400;
-        }
-        .row-input:focus {
-            border-color: #22c55e;
-            background: #0f172a;
-        }
-        .col-gcash .row-input {
-            color: #fbbf24;
-            font-size: 16px;
-            font-weight: 400;
-        }
-        .col-site .row-input {
-            color: #ffffff;
-            font-size: 16px;
-            font-weight: 400;
-        }
-
-        .autocomplete-items {
-            position: absolute;
-            border: 1px solid #22543d;
-            border-bottom: none;
-            border-top: none;
-            z-index: 99;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #0f172a;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-        .autocomplete-items div {
-            padding: 6px;
-            cursor: pointer;
-            background-color: #1e293b;
-            border-bottom: 1px solid #143322;
-            font-size: 14px;
-            color: #ffffff;
-            text-align: center;
-        }
-        .autocomplete-items div:hover {
-            background-color: #143322;
-            color: #ffffff;
-        }
-
-        .withdraw-wrapper {
-            position: relative;
-            width: 100%;
-            height: 26px;
-            background: #102617;
-            border: 1px solid #22543d;
-            border-radius: 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .withdraw-wrapper:focus-within {
-            border-color: #22c55e;
-            background: #0f172a;
-        }
-        .withdraw-input {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            border: none;
-            outline: none;
-            font-size: 16px;
-            text-align: center;
-            color: transparent;
-            caret-color: #ffffff;
-            z-index: 2;
-            font-weight: 400;
-        }
-        .withdraw-display {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            pointer-events: none;
-            z-index: 1;
-            white-space: pre;
-            font-weight: 400;
-        }
-        .part-left { color: #ffffff; font-weight: 400; }
-        .part-right { color: #4ade80; font-weight: 400; }
-        .part-minus { color: #f97316; font-weight: 700; margin-left: 4px; }
-
-        .row-minus-popover {
-            display: none;
-            position: absolute;
-            right: -68px;
-            top: 0;
-            height: 26px;
-            z-index: 50;
-            gap: 2px;
-        }
-        .popover-btn-minus {
-            width: 30px;
-            height: 26px;
-            background: #b45309;
-            color: #fef3c7;
-            border: none;
-            border-radius: 2px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .popover-btn-minus:hover { background: #d97706; color: white; }
-
-        .popover-btn-undo {
-            width: 34px;
-            height: 26px;
-            background: #143322;
-            color: #86efac;
-            border: none;
-            border-radius: 2px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .popover-btn-undo:hover { background: #1f4e34; color: white; }
-        
-        .send-value {
-            width: 100%;
-            height: 26px;
-            color: #fb923c;
-            font-weight: 400;
-            font-size: 16px;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .card-footer {
-            display: grid;
-            grid-template-columns: 110px 1fr 75px 75px;
-            background: #111827;
-            border-top: 2px solid #143322;
-            align-items: stretch;
-        }
-        .title-btn {
-            background: #143322;
-            color: white;
-            border: none;
-            padding: 8px 4px;
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-            text-align: center;
-            border-right: 1px solid #1f2937;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .title-btn:hover { background: #1f4e34; }
-
-        .stats-box {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 2px;
-            border-right: 1px solid #1f2937;
-        }
-        
-        .stat-limit, .stat-pay {
-            font-size: 16px;
-            font-weight: 700;
-        }
-        .stat-limit { text-align: center; color: #e5e7eb; }
-        
-        .stat-total-val { font-size: 18px; color: #38bdf8; font-weight: 700; }
-        .stat-limit-val { font-size: 18px; color: #ef4444; font-weight: 700; }
-
-        .stat-pay { text-align: center; color: #ffffff; }
-        .stat-pay span { font-size: 15px; color: #4ade80; font-weight: 700; }
-
-        .btn-reset {
-            background: #991b1b;
-            color: #fee2e2;
-            border: none;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            text-align: center;
-            padding: 8px 2px;
-            border-right: 1px solid #1f2937;
-        }
-        .btn-reset:hover { background: #b91c1c; color: white; }
-
-        .btn-delete {
-            background: #581c87;
-            color: #e9d5ff;
-            border: none;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            text-align: center;
-            padding: 8px 2px;
-        }
-        .btn-delete:hover { background: #6b21a8; color: white; }
-
-        .add-section {
-            display: flex;
-            justify-content: center;
-            margin: 25px 0;
-            width: 100%;
-        }
-        .btn-add-table {
             background: #059669;
-            color: white;
+            color: #ffffff;
             border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
+            padding: 14px;
+            border-radius: 12px;
             font-size: 14px;
             font-weight: 700;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        .btn-add-table:hover { background: #047857; }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: #143322;
-            padding: 20px;
-            border-radius: 8px;
-            width: 300px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            border: 1px solid #22543d;
-        }
-        .modal-content h3 { font-size: 16px; margin-bottom: 5px; color: #fbbf24; text-align: center; font-weight: 700; }
-        .modal-option {
-            background: #0f2618;
-            color: white;
-            border: 1px solid #22543d;
-            padding: 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
             text-align: center;
+            transition: all 0.2s ease;
         }
-        .modal-option:hover { background: #1f4e34; }
+        .btn-action:hover {
+            background: #10b981;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: #1e293b;
+            border: 1px solid #334155;
+            box-shadow: none;
+        }
+        .btn-secondary:hover {
+            background: #334155;
+        }
     </style>
 </head>
 <body>
 
-<div class="main-layout">
-    <div class="content-area">
-        <div class="container">
-            <div class="top-header">
-                <h1>GCash Tracker Dashboard</h1>
-                <div class="grand-total-container">
-                    GRAND TOTAL: <span id="grand-total-val">0</span>
-                </div>
-                <div class="header-btns">
-                    <button class="btn-action" onclick="exportData()">Export Backup</button>
-                </div>
-            </div>
-
-            <div class="dashboard-grid" id="tables-container"></div>
-
-            <div class="add-section">
-                <button class="btn-add-table" onclick="addTablePair()">
-                    <span>Add Table Pair</span> 
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                </button>
-            </div>
+<!-- Pattern Lock Screen -->
+<div id="lock-screen">
+    <div class="lock-container">
+        <div class="welcome-user-text">Welcome Back, John Lasper</div>
+        <div class="lock-title" id="lock-prompt">Loading Security...</div>
+        <div class="pattern-grid" id="pattern-grid">
+            <svg id="pattern-svg">
+                <line id="current-line" x1="0" y1="0" x2="0" y2="0" stroke="#059669" stroke-width="4" stroke-linecap="round" style="display:none;"/>
+            </svg>
+            <div class="pattern-dot" data-index="0"></div>
+            <div class="pattern-dot" data-index="1"></div>
+            <div class="pattern-dot" data-index="2"></div>
+            <div class="pattern-dot" data-index="3"></div>
+            <div class="pattern-dot" data-index="4"></div>
+            <div class="pattern-dot" data-index="5"></div>
+            <div class="pattern-dot" data-index="6"></div>
+            <div class="pattern-dot" data-index="7"></div>
+            <div class="pattern-dot" data-index="8"></div>
+        </div>
+        <div class="lock-error" id="lock-error"></div>
+        <div class="pattern-actions">
+            <button class="btn-action btn-secondary" onclick="resetPatternInput()">Clear</button>
         </div>
     </div>
-
-    <!-- Notes Sidebar (Notepad Style) -->
-    <div class="notes-sidebar">
-        <button class="btn-copy-main" onclick="copyNotepadContent()">COPY</button>
-        <textarea id="notepad-textarea" class="notepad-textarea" placeholder="Auto-populated notes..." oninput="saveNotepadManual()"></textarea>
-    </div>
 </div>
 
-<div class="modal" id="categoryModal">
-    <div class="modal-content">
-        <h3>SELECT PHONES</h3>
-        <button class="modal-option" onclick="selectCategory('NUBIA')">NUBIA</button>
-        <button class="modal-option" onclick="selectCategory('RM')">RM</button>
-        <button class="modal-option" onclick="selectCategory('VIVO')">VIVO</button>
-        <button class="modal-option" onclick="selectCategory('7PRO')">7PRO</button>
-        <button class="modal-option" onclick="selectCategory('NOTE')">NOTE</button>
-        <button class="modal-option" onclick="selectCategory('MUSIC')">MUSIC</button>
-        <button class="modal-option" style="background:#0f2618; margin-top:5px; font-size: 16px;" onclick="closeModal()">Close</button>
+<div class="app-container">
+    <!-- App-Style Balance Card -->
+    <div class="balance-card">
+        <div class="balance-title">Total Available Funds</div>
+        <div class="balance-amount" id="grand-total">0</div>
     </div>
+
+    <!-- Accounts List -->
+    <div class="accounts-list" id="rows-container"></div>
 </div>
 
-<!-- Firebase Scripts & Logic -->
+<div class="actions-area" style="margin-bottom: 10px;">
+    <button class="btn-action" onclick="addRow()">+ Add Account</button>
+    <button class="btn-action btn-secondary" onclick="undoDelete()" id="btn-undo" style="opacity: 0.5; pointer-events: none;">↩ Undo</button>
+</div>
+<div class="actions-area">
+    <button class="btn-action btn-secondary" onclick="changePattern()">Change Pattern</button>
+</div>
+
+<!-- Firebase SDKs & App Logic -->
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyChbH-K3pEmcmMyv09dyixFyx0t9kQJPTk",
-        authDomain: "gcash-tracker-91a99.firebaseapp.com",
-        databaseURL: "https://gcash-tracker-91a99-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "gcash-tracker-91a99",
-        storageBucket: "gcash-tracker-91a99.appspot.com",
-        messagingSenderId: "440088070678",
-        appId: "1:440088070678:web:9a2409808b856c6309c337",
-        measurementId: "G-9V01ZKYW9X"
+        apiKey: "AIzaSyD4K17Q8r5-GDShRYRn4RU6Ki1mWbTHGew",
+        authDomain: "funds-tracker-1609a.firebaseapp.com",
+        databaseURL: "https://funds-tracker-1609a-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "funds-tracker-1609a",
+        storageBucket: "funds-tracker-1609a.firebasestorage.app",
+        messagingSenderId: "646295926768",
+        appId: "1:646295926768:web:6dd7984eff88e508d5cf35"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const dbRef = ref(db, 'gcashTracker/data');
+    const fundsRef = ref(db, 'funds_data');
+    const settingsRef = ref(db, 'app_settings');
 
-    let tablePairs = [];
-    const maxRows = 14;
-    let activePairIndex = null;
-    let isUserTypingInNotepad = false;
-
-    const siteList = [
-        "778go", "k67", "PHB", "t988", "j77", "qpjl", "ttjl", "OKT", "888pinas", "jlwafa", 
-        "bingomax", "567jl", "ufo", "tayahot", "tara", "63slots", "pinasdiamond", "kubra", 
-        "pharcade", "paldocrown", "akaok", "pk11", "philslot", "bpanthers", "bet160", "358jl", 
-        "goodjl", "828jl", "scarabph", "megawagi", "alligator", "jliso", "easyearn", "2djili", 
-        "tablegame+", "durian", "boss7", "bonanza", "pinoy", "malupetph", "FBM", "PH888", 
-        "5djl", "Paldogrown", "D9", "sarimanok", "gogoph", "3u3u", "winpinas", "luckace", 
-        "sinswerte", "moonpinas", "leopard", "jilicasino", "panalolagi", "boompanalo", "SR93", 
-        "gamepinas", "racoon", "200SR"
+    let defaultData = [
+        { name: "Cash", amount: "2,320" },
+        { name: "GCash", amount: "10,005" },
+        { name: "MariBank", amount: "338,063" },
+        { name: "Maya Business", amount: "40,294" },
+        { name: "Janice", amount: "1,777" },
+        { name: "Kim", amount: "2,000" },
+        { name: "Cherry", amount: "5,890" }
     ];
 
-    function formatNumber(num) {
-        return num.toLocaleString();
-    }
+    window.fundsData = [];
+    let deletedItemCache = null; // Para sa Undo feature
+    let saveTimeout = null;
 
-    function getDefaultStructure() {
-        return [
-            {
-                category: "RM",
-                leftVisible: true, rightVisible: true,
-                leftCollapsed: false, rightCollapsed: false,
-                left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) },
-                right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) }
-            },
-            {
-                category: "NUBIA",
-                leftVisible: true, rightVisible: true,
-                leftCollapsed: false, rightCollapsed: false,
-                left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) },
-                right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) }
+    let cloudPattern = "";
+    let selectedDots = [];
+    let isDrawing = false;
+    let confirmStepPattern = "";
+    let isSettingMode = false;
+
+    const lockScreen = document.getElementById('lock-screen');
+    const lockPrompt = document.getElementById('lock-prompt');
+    const grid = document.getElementById('pattern-grid');
+    const dots = document.querySelectorAll('.pattern-dot');
+    const svg = document.getElementById('pattern-svg');
+    const currentLine = document.getElementById('current-line');
+
+    onValue(settingsRef, (snapshot) => {
+        const settings = snapshot.val();
+        if (settings && settings.pattern) {
+            cloudPattern = settings.pattern;
+            if (!isSettingMode) {
+                lockPrompt.innerText = "Draw Unlock Pattern";
             }
-        ];
-    }
-
-    // 1. Load Local Storage for Data
-    const localData = localStorage.getItem('gcashTracker_data');
-    if (localData) {
-        try {
-            tablePairs = JSON.parse(localData);
-            renderDashboard();
-        } catch(e) {
-            console.error("Local storage error:", e);
-        }
-    }
-
-    // 2. Firebase Listener for Data
-    onValue(dbRef, (snapshot) => {
-        const serverData = snapshot.val();
-        if (serverData && serverData.length > 0) {
-            tablePairs = serverData;
-            tablePairs.forEach(pair => {
-                if (pair.leftCollapsed === undefined) pair.leftCollapsed = false;
-                if (pair.rightCollapsed === undefined) pair.rightCollapsed = false;
-                ['left', 'right'].forEach(side => {
-                    if (!pair[side].gcash) pair[side].gcash = Array(14).fill("");
-                    if (!pair[side].sites) pair[side].sites = Array(14).fill("");
-                    if (!pair[side].withdraws) pair[side].withdraws = Array(14).fill("");
-                    if (!pair[side].manualPayDeductions) {
-                        let oldVal = pair[side].manualPayDeduction || 0;
-                        pair[side].manualPayDeductions = Array(14).fill(0);
-                        if (oldVal > 0 && pair[side].withdraws.length > 0) {
-                            pair[side].manualPayDeductions[0] = oldVal;
-                        }
-                    }
-                });
-            });
-            localStorage.setItem('gcashTracker_data', JSON.stringify(tablePairs));
-            
-            if (!document.activeElement || (!document.activeElement.classList.contains('row-input') && !document.activeElement.classList.contains('withdraw-input') && !document.activeElement.classList.contains('notepad-textarea'))) {
-                renderDashboard();
-            }
-        } else if (!localData) {
-            tablePairs = getDefaultStructure();
-            saveDataToBoth();
-            renderDashboard();
+        } else {
+            cloudPattern = "";
+            lockPrompt.innerText = "Set Your New Pattern (Draw once)";
         }
     });
 
-    function saveDataToBoth() {
-        localStorage.setItem('gcashTracker_data', JSON.stringify(tablePairs));
-        set(dbRef, tablePairs).catch((error) => {
-            console.error("Error saving to Firebase: ", error);
-        });
+    function getDotCenter(dot) {
+        const rect = dot.getBoundingClientRect();
+        const gridRect = grid.getBoundingClientRect();
+        return {
+            x: rect.left + rect.width / 2 - gridRect.left,
+            y: rect.top + rect.height / 2 - gridRect.top
+        };
     }
 
-    // Copy Notepad Content Function
-    window.copyNotepadContent = function() {
-        let textarea = document.getElementById('notepad-textarea');
-        if (!textarea) return;
+    function redrawLines(sequence) {
+        const oldLines = svg.querySelectorAll('.permanent-line');
+        oldLines.forEach(l => l.remove());
 
-        let textToClipboard = textarea.value;
-        navigator.clipboard.writeText(textToClipboard).then(() => {
-            let btn = document.querySelector('.btn-copy-main');
-            let originalText = btn.innerText;
-            btn.innerText = "COPIED!";
-            btn.style.background = "#2563eb";
-            setTimeout(() => {
-                btn.innerText = originalText;
-                btn.style.background = "#059669";
-            }, 1500);
-        }).catch(err => {
-            console.error('Failed to copy text: ', err);
-        });
-    }
-
-    window.saveNotepadManual = function() {
-        isUserTypingInNotepad = true;
-        let textarea = document.getElementById('notepad-textarea');
-        if (textarea) {
-            window.customNotepadText = textarea.value;
+        for (let i = 0; i < sequence.length - 1; i++) {
+            let p1 = getDotCenter(dots[sequence[i]]);
+            let p2 = getDotCenter(dots[sequence[i+1]]);
+            let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', p1.x);
+            line.setAttribute('y1', p1.y);
+            line.setAttribute('x2', p2.x);
+            line.setAttribute('y2', p2.y);
+            line.setAttribute('stroke', '#059669');
+            line.setAttribute('stroke-width', '4');
+            line.setAttribute('stroke-linecap', 'round');
+            line.classList.add('permanent-line');
+            svg.appendChild(line);
         }
     }
 
-    // Render Notepad Content Automatically (Skipping <= 199 limit items)
-    function renderInteractiveNotes() {
-        let textarea = document.getElementById('notepad-textarea');
-        if (!textarea) return;
+    function startDraw(e) {
+        isDrawing = true;
+        selectedDots = [];
+        document.getElementById('lock-error').innerText = "";
+        dots.forEach(d => d.classList.remove('active'));
+        currentLine.style.display = 'none';
         
-        // Kung ga-type ang user sa notepad, ayaw i-overwrite dayon aron dili ma-interrupt ang iyang gi-type
-        if (isUserTypingInNotepad && document.activeElement === textarea) return;
+        if (e.target && e.target.setPointerCapture && e.pointerId) {
+            try { e.target.setPointerCapture(e.pointerId); } catch(err) {}
+        }
+        
+        checkTouch(e);
+    }
 
-        let linesToRender = [];
+    function moveDraw(e) {
+        if (!isDrawing) return;
+        checkTouch(e);
+    }
 
-        tablePairs.forEach((pair, pairIdx) => {
-            ['left', 'right'].forEach(side => {
-                let isVisible = side === 'left' ? pair.leftVisible : pair.rightVisible;
-                let isCollapsed = side === 'left' ? pair.leftCollapsed : pair.rightCollapsed;
-                
-                if (isVisible && !isCollapsed && pair[side] && pair[side].gcash && pair[side].withdraws) {
-                    let card = document.getElementById(`card-${pairIdx}-${side}`);
-                    let cardTotalWithdraw = 0;
-                    
-                    if (card) {
-                        let withdrawInputs = card.querySelectorAll('.withdraw-input');
-                        withdrawInputs.forEach((inp) => {
-                            let parts = inp.value.split('/');
-                            let w = parseFloat(parts[0]) || 0;
-                            cardTotalWithdraw += w;
-                        });
-                    } else {
-                        pair[side].withdraws.forEach((wVal) => {
-                            let parts = (wVal || "").split('/');
-                            let w = parseFloat(parts[0]) || 0;
-                            cardTotalWithdraw += w;
-                        });
-                    }
+    function endDraw(e) {
+        if (!isDrawing) return;
+        isDrawing = false;
+        currentLine.style.display = 'none';
 
-                    let cardRemainingLimit = 5000 - cardTotalWithdraw;
+        if (e && e.target && e.target.releasePointerCapture && e.pointerId) {
+            try { e.target.releasePointerCapture(e.pointerId); } catch(err) {}
+        }
 
-                    pair[side].gcash.forEach((gNum, r) => {
-                        let cleanNum = (gNum || "").trim();
-                        if (cleanNum !== "") {
-                            let isRedDim = (cardRemainingLimit <= 199);
-                            
-                            // Kung labaw sa 199 ang limit, i-apil sa auto notepad
-                            if (!isRedDim) {
-                                let displayText = (cardRemainingLimit <= 1999) ? `${cleanNum} - ${formatNumber(cardRemainingLimit)} limit` : cleanNum;
-                                linesToRender.push(displayText);
-                            }
-                        }
-                    });
-                }
-            });
-        });
-
-        // Idugang ang G-Cash MINE💚 sa ilawom
-        linesToRender.push("G-Cash MINE💚");
-
-        // Kung naay gi-save nga custom text sa user, gamita kundi gamita ang auto generated
-        if (window.customNotepadText !== undefined && isUserTypingInNotepad) {
-            // Keep user typed text
-        } else {
-            textarea.value = linesToRender.join('\n');
+        if (selectedDots.length > 0) {
+            handlePatternInput(selectedDots.join(','));
         }
     }
 
-    function renderDashboard() {
-        let container = document.getElementById('tables-container');
-        if (!container) return;
+    function checkTouch(e) {
+        const clientX = e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+        const clientY = e.clientY !== undefined ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
+
+        if (!clientX && !clientY) return;
+
+        dots.forEach((dot, index) => {
+            const rect = dot.getBoundingClientRect();
+            const hitPadding = 26; 
+            if (
+                clientX >= rect.left - hitPadding && clientX <= rect.right + hitPadding &&
+                clientY >= rect.top - hitPadding && clientY <= rect.bottom + hitPadding
+            ) {
+                if (!selectedDots.includes(index)) {
+                    selectedDots.push(index);
+                    dot.classList.add('active');
+                    redrawLines(selectedDots);
+                }
+            }
+        });
+
+        if (selectedDots.length > 0) {
+            const lastDot = dots[selectedDots[selectedDots.length - 1]];
+            const p1 = getDotCenter(lastDot);
+            const gridRect = grid.getBoundingClientRect();
+            const x2 = clientX - gridRect.left;
+            const y2 = clientY - gridRect.top;
+
+            currentLine.setAttribute('x1', p1.x);
+            currentLine.setAttribute('y1', p1.y);
+            currentLine.setAttribute('x2', x2);
+            currentLine.setAttribute('y2', y2);
+            currentLine.style.display = 'block';
+        }
+    }
+
+    grid.addEventListener('pointerdown', startDraw);
+    grid.addEventListener('pointermove', moveDraw);
+    grid.addEventListener('pointerup', endDraw);
+    grid.addEventListener('pointercancel', endDraw);
+
+    window.resetPatternInput = function() {
+        selectedDots = [];
+        dots.forEach(d => d.classList.remove('active'));
+        const oldLines = svg.querySelectorAll('.permanent-line');
+        oldLines.forEach(l => l.remove());
+        currentLine.style.display = 'none';
+    }
+
+    function handlePatternInput(patternStr) {
+        if (!cloudPattern || isSettingMode) {
+            if (patternStr.split(',').length < 3) {
+                document.getElementById('lock-error').innerText = "Connect at least 3 dots!";
+                setTimeout(resetPatternInput, 600);
+                return;
+            }
+            if (!confirmStepPattern) {
+                confirmStepPattern = patternStr;
+                lockPrompt.innerText = "Draw Pattern Again to Confirm";
+                setTimeout(resetPatternInput, 400);
+            } else {
+                if (patternStr === confirmStepPattern) {
+                    set(settingsRef, { pattern: confirmStepPattern }).then(() => {
+                        alert("Pattern saved & synced to all devices!");
+                        isSettingMode = false;
+                        lockScreen.style.display = 'none';
+                    });
+                } else {
+                    document.getElementById('lock-error').innerText = "Patterns do not match. Start over.";
+                    confirmStepPattern = "";
+                    lockPrompt.innerText = "Set Your New Pattern";
+                }
+                setTimeout(resetPatternInput, 600);
+            }
+        } else {
+            if (patternStr === cloudPattern) {
+                lockScreen.style.display = 'none';
+            } else {
+                document.getElementById('lock-error').innerText = "Incorrect pattern. Try again.";
+                setTimeout(resetPatternInput, 600);
+            }
+        }
+    }
+
+    window.changePattern = function() {
+        if (confirm("Do you want to change the unlock pattern for ALL devices?")) {
+            isSettingMode = true;
+            confirmStepPattern = "";
+            lockPrompt.innerText = "Draw Your NEW Pattern";
+            resetPatternInput();
+            lockScreen.style.display = 'flex';
+        }
+    }
+
+    onValue(fundsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            let activeEl = document.activeElement;
+            let isUserTyping = activeEl && (activeEl.classList.contains('input-name') || activeEl.classList.contains('input-amount'));
+
+            if (JSON.stringify(data) !== JSON.stringify(window.fundsData)) {
+                window.fundsData = data;
+                localStorage.setItem('bankAppTracker_lighter_data', JSON.stringify(data));
+                
+                if (!isUserTyping) {
+                    renderTable();
+                } else {
+                    calculateGrandTotal();
+                }
+            }
+        } else {
+            window.fundsData = defaultData;
+            set(fundsRef, defaultData);
+            renderTable();
+        }
+    });
+
+    window.scheduleCloudSync = function() {
+        localStorage.setItem('bankAppTracker_lighter_data', JSON.stringify(window.fundsData));
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            set(fundsRef, window.fundsData).catch((error) => {
+                console.error("Error sa pag-sync:", error);
+            });
+        }, 300);
+    }
+
+    window.formatNumber = function(num) {
+        return num.toLocaleString();
+    }
+
+    window.parseNum = function(val) {
+        if (!val) return 0;
+        let clean = val.toString().replace(/,/g, '');
+        let parsed = parseFloat(clean);
+        return isNaN(parsed) ? 0 : parsed;
+    }
+
+    window.getBrandInfo = function(name) {
+        if (!name) return { color: '#475569', bg: 'linear-gradient(90deg, rgba(71, 85, 105, 0.18) 0%, rgba(17, 24, 39, 0.9) 80%)', icon: `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>` };
+        let lower = name.toLowerCase().trim();
+        
+        if (lower.includes('gcash')) {
+            return {
+                color: '#0099ff',
+                bg: 'linear-gradient(90deg, rgba(0, 153, 255, 0.28) 0%, rgba(17, 24, 39, 0.9) 80%)',
+                icon: `<svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>`
+            };
+        } else if (lower.includes('maribank')) {
+            return {
+                color: '#fb923c',
+                bg: 'linear-gradient(90deg, rgba(251, 146, 60, 0.28) 0%, rgba(17, 24, 39, 0.9) 80%)',
+                icon: `<svg viewBox="0 0 24 24"><path d="M11.5 1L2 6v2h19V6m-9.5 4c-3.87 0-7 3.13-7 7s3.13 7 7 7 7-3.13 7-7-3.13-7-7-7m0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>`
+            };
+        } else if (lower.includes('maya')) {
+            return {
+                color: '#22d3ee',
+                bg: 'linear-gradient(90deg, rgba(34, 211, 238, 0.28) 0%, rgba(17, 24, 39, 0.9) 80%)',
+                icon: `<svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>`
+            };
+        } else if (lower.includes('cash')) {
+            return {
+                color: '#34d399',
+                bg: 'linear-gradient(90deg, rgba(52, 211, 153, 0.28) 0%, rgba(17, 24, 39, 0.9) 80%)',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.64 0-.83-.41-1.64-2.92-2.23-3.22-.75-4.42-1.83-4.42-3.5 0-1.64 1.32-2.86 3.12-3.21V4h2.67v1.95c1.4.31 2.7 1.25 2.92 3.01h-1.97c-.12-.8-.71-1.41-2.13-1.41-1.35 0-2.05.59-2.05 1.44 0 .75.48 1.32 2.62 1.83 3.39.81 4.72 1.83 4.72 3.65 0 1.73-1.3 2.96-3.23 3.34z"/></svg>`
+            };
+        } else {
+            return {
+                color: '#94a3b8',
+                bg: 'linear-gradient(90deg, rgba(148, 163, 184, 0.2) 0%, rgba(17, 24, 39, 0.9) 80%)',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`
+            };
+        }
+    }
+
+    window.renderTable = function() {
+        let container = document.getElementById('rows-container');
         container.innerHTML = '';
 
-        tablePairs.forEach((pair, pairIdx) => {
+        window.fundsData.forEach((item, index) => {
             let rowDiv = document.createElement('div');
-            rowDiv.className = 'pair-row';
+            rowDiv.className = 'row-item';
 
-            if (pair.leftVisible) {
-                rowDiv.appendChild(createCardElement(pair, pairIdx, 'left'));
-            } else {
-                let placeholder = document.createElement('div');
-                placeholder.className = 'placeholder';
-                rowDiv.appendChild(placeholder);
-            }
+            let brand = getBrandInfo(item.name);
+            rowDiv.style.background = brand.bg;
 
-            if (pair.rightVisible) {
-                rowDiv.appendChild(createCardElement(pair, pairIdx, 'right'));
-            } else {
-                let placeholder = document.createElement('div');
-                placeholder.className = 'placeholder';
-                rowDiv.appendChild(placeholder);
-            }
+            let lowerName = item.name ? item.name.toLowerCase().trim() : "";
+            let isProtected = lowerName === 'cash' || lowerName === 'gcash' || lowerName === 'maribank' || lowerName === 'maya business';
 
+            rowDiv.innerHTML = `
+                <div class="name-input-wrapper" id="wrapper-${index}" style="border-left-color: ${brand.color};">
+                    <div class="brand-icon" id="icon-${index}" style="fill: ${brand.color};">${brand.icon}</div>
+                    <input type="text" class="input-name" value="${item.name || ''}" placeholder="Account name..." oninput="updateItemName(${index}, this)">
+                </div>
+                <input type="text" class="input-amount" value="${item.amount || ''}" placeholder="0" 
+                    onfocus="handleAmountFocus(this)" 
+                    oninput="handleAmountInput(${index}, this)" 
+                    onblur="formatAmountBlur(${index}, this)">
+                ${isProtected ? `<div style="width: 32px;"></div>` : `<button class="btn-delete-row" onclick="deleteRow(${index})" title="Delete account">×</button>`}
+            `;
             container.appendChild(rowDiv);
         });
 
         calculateGrandTotal();
-        renderInteractiveNotes();
     }
 
-    function createCardElement(pairObj, pairIdx, side) {
-        let card = document.createElement('div');
-        card.className = 'card';
-        card.id = `card-${pairIdx}-${side}`;
-        
-        let tableObj = pairObj[side];
-        let displayTitle = side === 'left' ? `${pairObj.category || 'SELECT'} MAIN` : `${pairObj.category || 'SELECT'} WORK`;
-        let isCollapsed = side === 'left' ? pairObj.leftCollapsed : pairObj.rightCollapsed;
-        let arrowSymbol = isCollapsed ? '▶' : '▼';
-
-        let gcashHTML = '';
-        let sitesHTML = '';
-        let withdrawsHTML = '';
-        let sendsHTML = '';
-
-        for (let r = 0; r < maxRows; r++) {
-            let gVal = tableObj.gcash && tableObj.gcash[r] !== undefined ? tableObj.gcash[r] : '';
-            let siteVal = tableObj.sites && tableObj.sites[r] !== undefined ? tableObj.sites[r] : '';
-            let wVal = tableObj.withdraws && tableObj.withdraws[r] !== undefined ? tableObj.withdraws[r] : '';
-            let mDeduction = tableObj.manualPayDeductions && tableObj.manualPayDeductions[r] ? tableObj.manualPayDeductions[r] : 0;
-            
-            gcashHTML += `<input type="text" class="row-input gcash-input" value="${gVal}" onfocus="this.select()" oninput="updateData(${pairIdx}, '${side}')">`;
-            
-            sitesHTML += `
-                <div style="position:relative; width:100%;">
-                    <input type="text" class="row-input site-input" value="${siteVal}" onfocus="this.select()" oninput="handleSiteInput(event, ${pairIdx}, '${side}', ${r})" onkeydown="handleSiteKey(event, ${pairIdx}, '${side}', ${r})" autocomplete="off">
-                    <div id="autocomplete-list-${pairIdx}-${side}-${r}" class="autocomplete-items"></div>
-                </div>
-            `;
-            
-            let displayFormatted = formatWithdrawDisplay(wVal, mDeduction);
-            withdrawsHTML += `
-                <div class="withdraw-wrapper" onclick="toggleRowMinus(${pairIdx}, '${side}', ${r}, event)">
-                    <div class="withdraw-display" id="display-${pairIdx}-${side}-${r}">${displayFormatted}</div>
-                    <input type="text" class="withdraw-input" value="${wVal}" onfocus="this.select()" oninput="handleWithdrawInput(${pairIdx}, '${side}', ${r}, this)" onblur="normalizeWithdraw(${pairIdx}, '${side}', ${r}, this)">
-                    <div class="row-minus-popover" id="popover-minus-${pairIdx}-${side}-${r}">
-                        <button class="popover-btn-minus" onclick="applyRowAdjustment(event, ${pairIdx}, '${side}', ${r}, 5)" title="Minus 5">-5</button>
-                        <button class="popover-btn-undo" onclick="applyRowAdjustment(event, ${pairIdx}, '${side}', ${r}, -5)" title="Undo 5">+5</button>
-                    </div>
-                </div>
-            `;
-            
-            sendsHTML += `<div class="send-value" id="send-${pairIdx}-${side}-${r}">0</div>`;
-        }
-
-        let bodyStyle = isCollapsed ? 'display: none;' : 'display: grid;';
-        let footerStyle = isCollapsed ? 'display: none;' : 'display: grid;';
-
-        card.innerHTML = `
-            <div class="table-headers">
-                <div class="col-arrow-header" onclick="toggleCollapse(${pairIdx}, '${side}')" title="Collapse / Expand">${arrowSymbol}</div>
-                <div>Gcash</div>
-                <div>Site</div>
-                <div>Withdraw<span> / PAY</span></div>
-                <div>SEND</div>
-            </div>
-            <div class="card-body" id="body-${pairIdx}-${side}" style="${bodyStyle}">
-                <div class="col-gcash">${gcashHTML}</div>
-                <div class="col-site">${sitesHTML}</div>
-                <div class="col-withdraw">${withdrawsHTML}</div>
-                <div class="col-send">${sendsHTML}</div>
-            </div>
-            <div class="card-footer" id="footer-${pairIdx}-${side}" style="${footerStyle}">
-                <button class="title-btn" onclick="openModal(${pairIdx})">${displayTitle}</button>
-                <div class="stats-box">
-                    <div class="stat-limit">TOTAL / LIMIT<br><span id="tot-limit-${pairIdx}-${side}"><span class="stat-total-val" id="tot-val-${pairIdx}-${side}">0</span> / <span class="stat-limit-val" id="lim-val-${pairIdx}-${side}">5,000</span></span></div>
-                    <div class="stat-pay">TOTAL PAY<br><span id="tot-pay-${pairIdx}-${side}">0</span></div>
-                </div>
-                <button class="btn-reset" onclick="resetTable(${pairIdx}, '${side}')">RESET</button>
-                <button class="btn-delete" onclick="deleteTable(${pairIdx}, '${side}')">DELETE</button>
-            </div>
-        `;
-        
-        setTimeout(() => calculateCard(pairIdx, side), 0);
-        return card;
-    }
-
-    window.toggleRowMinus = function(pairIdx, side, rowIndex, event) {
-        document.querySelectorAll('.row-minus-popover').forEach(el => el.style.display = 'none');
-        let popover = document.getElementById(`popover-minus-${pairIdx}-${side}-${rowIndex}`);
-        if (popover) {
-            popover.style.display = 'flex';
-            event.stopPropagation();
+    // Inig click/focus sa amount, awtomatikong ma-select ang tibuok numero para dali mailisan
+    window.handleAmountFocus = function(inputEl) {
+        setTimeout(() => {
+            inputEl.select();
+        }, 50);
+        let raw = inputEl.value.replace(/,/g, '');
+        if (raw !== "0") {
+            inputEl.value = raw;
         }
     }
 
-    document.addEventListener("click", function(e) {
-        if (!e.target.closest('.withdraw-wrapper') && !e.target.closest('.row-minus-popover')) {
-            document.querySelectorAll('.row-minus-popover').forEach(el => el.style.display = 'none');
-        }
-    });
-
-    window.applyRowAdjustment = function(event, pairIdx, side, rowIndex, amount) {
-        event.stopPropagation();
-        if (!tablePairs[pairIdx][side].manualPayDeductions) {
-            tablePairs[pairIdx][side].manualPayDeductions = Array(14).fill(0);
-        }
+    window.updateItemName = function(index, inputEl) {
+        window.fundsData[index]['name'] = inputEl.value;
+        let brand = getBrandInfo(inputEl.value);
         
-        let currentDeduction = tablePairs[pairIdx][side].manualPayDeductions[rowIndex] || 0;
-        let newDeduction = currentDeduction + amount;
-        if (newDeduction < 0) newDeduction = 0;
-
-        tablePairs[pairIdx][side].manualPayDeductions[rowIndex] = newDeduction;
+        let rowEl = inputEl.closest('.row-item');
+        let wrapper = document.getElementById(`wrapper-${index}`);
+        let icon = document.getElementById(`icon-${index}`);
         
-        saveDataToBoth();
-        
-        let card = document.getElementById(`card-${pairIdx}-${side}`);
-        let wInp = card.querySelectorAll('.withdraw-input')[rowIndex];
-        let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
-        if (displayEl) {
-            displayEl.innerHTML = formatWithdrawDisplay(wInp.value, newDeduction);
+        if(rowEl) rowEl.style.background = brand.bg;
+        if(wrapper) wrapper.style.borderLeftColor = brand.color;
+        if(icon) {
+            icon.style.fill = brand.color;
+            icon.innerHTML = brand.icon;
         }
 
-        calculateCard(pairIdx, side);
+        scheduleCloudSync();
+    }
+
+    window.handleAmountInput = function(index, inputEl) {
+        window.fundsData[index]['amount'] = inputEl.value;
         calculateGrandTotal();
-        document.querySelectorAll('.row-minus-popover').forEach(el => el.style.display = 'none');
+        scheduleCloudSync();
     }
 
-    window.resetTable = function(pairIdx, side) {
-        if (confirm("Sigurado ka ba nga i-reset kining tableha?")) {
-            tablePairs[pairIdx][side] = {
-                gcash: Array(14).fill(""),
-                sites: Array(14).fill(""),
-                withdraws: Array(14).fill(""),
-                manualPayDeductions: Array(14).fill(0)
-            };
-            saveDataToBoth();
-            renderDashboard();
-        }
-    }
-
-    window.toggleCollapse = function(pairIdx, side) {
-        if (side === 'left') {
-            tablePairs[pairIdx].leftCollapsed = !tablePairs[pairIdx].leftCollapsed;
-        } else {
-            tablePairs[pairIdx].rightCollapsed = !tablePairs[pairIdx].rightCollapsed;
-        }
-        saveDataToBoth();
-        renderDashboard();
-    }
-
-    function formatWithdrawDisplay(val, mDeduction = 0) {
-        if (!val && mDeduction === 0) return '';
-        let parts = (val || "").split('/');
-        let left = parts[0] !== undefined ? parts[0].trim() : '';
-        let right = parts[1] !== undefined ? parts[1].trim() : '';
-        
-        let leftFormatted = !isNaN(left) && left !== '' ? formatNumber(parseFloat(left)) : left;
-        let rightFormatted = !isNaN(right) && right !== '' ? formatNumber(parseFloat(right)) : right;
-
-        let html = `<span class="part-left">${leftFormatted} / </span>`;
-        if (right !== '' || left !== '') {
-            html += `<span class="part-right">${rightFormatted}</span>`;
-        }
-        if (mDeduction > 0) {
-            html += `<span class="part-minus">-${mDeduction}</span>`;
-        }
-        return html;
-    }
-
-    window.handleWithdrawInput = function(pairIdx, side, rowIndex, inputEl) {
-        let val = inputEl.value;
-        let mDeduction = tablePairs[pairIdx][side].manualPayDeductions ? (tablePairs[pairIdx][side].manualPayDeductions[rowIndex] || 0) : 0;
-        let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
-        if (displayEl) {
-            displayEl.innerHTML = formatWithdrawDisplay(val, mDeduction);
-        }
-        updateData(pairIdx, side);
-    }
-
-    window.normalizeWithdraw = function(pairIdx, side, rowIndex, inputEl) {
-        let val = inputEl.value.trim();
-        if (val.includes('/')) {
-            let parts = val.split('/');
-            let p1 = parts[0].trim();
-            let p2 = parts[1].trim();
-            if (p2 !== '') {
-                inputEl.value = `${p1} / ${p2}`;
-            } else {
-                inputEl.value = `${p1} / `;
+    window.formatAmountBlur = function(index, inputEl) {
+        let rawVal = inputEl.value.trim();
+        if (rawVal !== "") {
+            let num = parseNum(rawVal);
+            if (num > 0 || rawVal === "0") {
+                inputEl.value = formatNumber(num);
+                window.fundsData[index]['amount'] = inputEl.value;
+                scheduleCloudSync();
             }
         }
-        let mDeduction = tablePairs[pairIdx][side].manualPayDeductions ? (tablePairs[pairIdx][side].manualPayDeductions[rowIndex] || 0) : 0;
-        let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
-        if (displayEl) {
-            displayEl.innerHTML = formatWithdrawDisplay(inputEl.value, mDeduction);
-        }
-        updateData(pairIdx, side);
-    }
-
-    window.handleSiteInput = function(event, pairIdx, side, rowIndex) {
-        let inputEl = event.target;
-        let val = inputEl.value;
-        let listContainer = document.getElementById(`autocomplete-list-${pairIdx}-${side}-${rowIndex}`);
-        
-        listContainer.innerHTML = "";
-        if (!val) {
-            updateData(pairIdx, side);
-            return;
-        }
-
-        let valLower = val.toLowerCase();
-        let matches = siteList.filter(site => site.toLowerCase().includes(valLower));
-
-        matches.forEach(matchText => {
-            let item = document.createElement("div");
-            item.innerHTML = matchText;
-            item.onclick = function() {
-                inputEl.value = matchText;
-                listContainer.innerHTML = "";
-                updateData(pairIdx, side);
-            };
-            listContainer.appendChild(item);
-        });
-
-        updateData(pairIdx, side);
-    }
-
-    document.addEventListener("click", function (e) {
-        if (!e.target.classList.contains('site-input')) {
-            document.querySelectorAll('.autocomplete-items').forEach(el => el.innerHTML = '');
-        }
-    });
-
-    window.handleSiteKey = function(event, pairIdx, side, rowIndex) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            let card = document.getElementById(`card-${pairIdx}-${side}`);
-            let siteInput = card.querySelectorAll('.site-input')[rowIndex];
-            let withdrawInput = card.querySelectorAll('.withdraw-input')[rowIndex];
-            let listContainer = document.getElementById(`autocomplete-list-${pairIdx}-${side}-${rowIndex}`);
-            if (listContainer) listContainer.innerHTML = "";
-
-            let val = siteInput.value;
-
-            let match = val.match(/(.+?)\s+(\d+)[-\/,\s](\d+)/);
-            if (match) {
-                let siteName = match[1].trim();
-                let num1 = match[2];
-                let num2 = match[3];
-
-                siteInput.value = siteName;
-                withdrawInput.value = `${num1} / ${num2}`;
-                
-                let mDeduction = tablePairs[pairIdx][side].manualPayDeductions ? (tablePairs[pairIdx][side].manualPayDeductions[rowIndex] || 0) : 0;
-                let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
-                if (displayEl) displayEl.innerHTML = formatWithdrawDisplay(withdrawInput.value, mDeduction);
-            }
-
-            updateData(pairIdx, side);
-
-            let nextSiteInput = card.querySelectorAll('.site-input')[rowIndex + 1];
-            if (nextSiteInput) {
-                nextSiteInput.focus();
-                nextSiteInput.select();
-            }
-        }
-    }
-
-    window.addTablePair = function() {
-        tablePairs.push({
-            category: "",
-            leftVisible: true, rightVisible: true,
-            leftCollapsed: false, rightCollapsed: false,
-            left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) },
-            right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) }
-        });
-        
-        openModal(tablePairs.length - 1);
-    }
-
-    window.deleteTable = function(pairIdx, side) {
-        if (confirm("Sigurado ka ba nga i-delete kining tableha?")) {
-            tablePairs[pairIdx][side + 'Visible'] = false;
-            if (!tablePairs[pairIdx].leftVisible && !tablePairs[pairIdx].rightVisible) {
-                tablePairs.splice(pairIdx, 1);
-            }
-            saveDataToBoth();
-            renderDashboard();
-        }
-    }
-
-    window.openModal = function(pairIdx) {
-        activePairIndex = pairIdx;
-        document.getElementById('categoryModal').style.display = 'flex';
-    }
-
-    window.closeModal = function() {
-        document.getElementById('categoryModal').style.display = 'none';
-        renderDashboard();
-    }
-
-    window.selectCategory = function(categoryName) {
-        if (activePairIndex !== null) {
-            tablePairs[activePairIndex].category = categoryName;
-            closeModal();
-            saveDataToBoth();
-            renderDashboard();
-        }
-    }
-
-    let saveTimeout = null;
-    window.updateData = function(pairIdx, side) {
-        let card = document.getElementById(`card-${pairIdx}-${side}`);
-        if (!card) return;
-
-        let gcashVals = [];
-        let sites = [];
-        let withdraws = [];
-        
-        card.querySelectorAll('.gcash-input').forEach(inp => gcashVals.push(inp.value));
-        card.querySelectorAll('.site-input').forEach(inp => sites.push(inp.value));
-        card.querySelectorAll('.withdraw-input').forEach(inp => withdraws.push(inp.value));
-
-        tablePairs[pairIdx][side].gcash = gcashVals;
-        tablePairs[pairIdx][side].sites = sites;
-        tablePairs[pairIdx][side].withdraws = withdraws;
-
-        calculateCard(pairIdx, side);
         calculateGrandTotal();
-
-        clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(() => {
-            saveDataToBoth();
-        }, 500);
     }
 
-    function calculateCard(pairIdx, side) {
-        let card = document.getElementById(`card-${pairIdx}-${side}`);
-        let totalWithdraw = 0;
-        let totalPay = 0;
+    window.calculateGrandTotal = function() {
+        let total = 0;
+        window.fundsData.forEach(item => {
+            total += parseNum(item.amount);
+        });
+        document.getElementById('grand-total').innerText = formatNumber(total);
+    }
 
-        let pair = tablePairs[pairIdx];
-        let mDeductions = pair && pair[side] && pair[side].manualPayDeductions ? pair[side].manualPayDundefineds : Array(14).fill(0);
-        if(!mDeductions) mDeductions = Array(14).fill(0);
+    window.addRow = function() {
+        window.fundsData.push({ name: "", amount: "" });
+        scheduleCloudSync();
+        renderTable();
+    }
 
-        if (card) {
-            let withdrawInputs = card.querySelectorAll('.withdraw-input');
-            withdrawInputs.forEach((inp, r) => {
-                let parts = inp.value.split('/');
-                let w = parseFloat(parts[0]) || 0;
-                let p = parseFloat(parts[1]) || 0;
-                let mD = mDeductions[r] || 0;
-                let effectiveP = p - mD;
-                if (effectiveP < 0) effectiveP = 0;
-
-                let sendEl = document.getElementById(`send-${pairIdx}-${side}-${r}`);
-                let standardSend = w - p; 
-                if (sendEl) sendEl.innerText = formatNumber(standardSend);
-                
-                totalWithdraw += w;
-                totalPay += effectiveP;
-            });
+    window.deleteRow = function(index) {
+        let removed = window.fundsData.splice(index, 1)[0];
+        deletedItemCache = removed; // I-save sa cache para ma-undo
+        
+        let undoBtn = document.getElementById('btn-undo');
+        if(undoBtn) {
+            undoBtn.style.opacity = '1';
+            undoBtn.style.pointerEvents = 'auto';
         }
 
-        let remainingLimit = 5000 - totalWithdraw;
-
-        let totValEl = document.getElementById(`tot-val-${pairIdx}-${side}`);
-        let limValEl = document.getElementById(`lim-val-${pairIdx}-${side}`);
-        let totPayEl = document.getElementById(`tot-pay-${pairIdx}-${side}`);
-
-        if (totValEl) totValEl.innerText = formatNumber(totalWithdraw);
-        if (limValEl) limValEl.innerText = formatNumber(remainingLimit);
-        if (totPayEl) totPayEl.innerText = formatNumber(totalPay);
-
-        renderInteractiveNotes();
+        scheduleCloudSync();
+        renderTable();
     }
 
-    function calculateGrandTotal() {
-        let grandTotalPay = 0;
-        tablePairs.forEach((pair, pairIdx) => {
-            ['left', 'right'].forEach(side => {
-                if (pair[side + 'Visible'] && pair[side] && pair[side].withdraws) {
-                    let mDeductions = pair[side].manualPayDeductions || Array(14).fill(0);
-                    pair[side].withdraws.forEach((wVal, r) => {
-                        let parts = (wVal || "").split('/');
-                        let p = parseFloat(parts[1]) || 0;
-                        let mD = mDeductions[r] || 0;
-                        let effectiveP = p - mD;
-                        if (effectiveP < 0) effectiveP = 0;
-                        grandTotalPay += effectiveP;
-                    });
-                }
-            });
-        });
-        let grandEl = document.getElementById('grand-total-val');
-        if (grandEl) grandEl.innerText = formatNumber(grandTotalPay);
+    window.undoDelete = function() {
+        if (deletedItemCache) {
+            window.fundsData.push(deletedItemCache);
+            deletedItemCache = null;
+            
+            let undoBtn = document.getElementById('btn-undo');
+            if(undoBtn) {
+                undoBtn.style.opacity = '0.5';
+                undoBtn.style.pointerEvents = 'none';
+            }
+
+            scheduleCloudSync();
+            renderTable();
+        }
     }
 </script>
 
