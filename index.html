@@ -4,11 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1580, initial-scale=1.0">
     <title>GCash Tracker Dashboard</title>
-    <!-- Custom App Icons -->
-    <link rel="apple-touch-icon" href="https://johnlasper29.github.io/funds-tracker/logogcashtracker.png">
-    <link rel="icon" type="image/png" href="https://johnlasper29.github.io/funds-tracker/logogcashtracker.png">
-    <link rel="manifest" href="manifest.json">
-
     <!-- Google Font: Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -108,6 +103,7 @@
             top: 10px;
         }
         
+        /* Big 22px Copy Button Header */
         .btn-copy-main {
             width: 100%;
             background: #059669;
@@ -125,6 +121,7 @@
         }
         .btn-copy-main:hover { background: #047857; }
         
+        /* Notepad Textarea Style (20px font, clickable anywhere) */
         .notepad-textarea {
             width: 100%;
             flex: 1;
@@ -619,6 +616,7 @@
         ];
     }
 
+    // 1. Load Local Storage for Data
     const localData = localStorage.getItem('gcashTracker_data');
     if (localData) {
         try {
@@ -629,6 +627,7 @@
         }
     }
 
+    // 2. Firebase Listener for Data
     onValue(dbRef, (snapshot) => {
         const serverData = snapshot.val();
         if (serverData && serverData.length > 0) {
@@ -668,6 +667,7 @@
         });
     }
 
+    // Copy Notepad Content Function
     window.copyNotepadContent = function() {
         let textarea = document.getElementById('notepad-textarea');
         if (!textarea) return;
@@ -695,6 +695,7 @@
         }
     }
 
+    // Render Notepad Content Automatically (Skipping <= 199 limit items)
     function renderInteractiveNotes() {
         let textarea = document.getElementById('notepad-textarea');
         if (!textarea) return;
@@ -1033,22 +1034,27 @@
                 let isVisible = side === 'left' ? pair.leftVisible : pair.rightVisible;
                 let isCollapsed = side === 'left' ? pair.leftCollapsed : pair.rightCollapsed;
                 if (isVisible && !isCollapsed) {
-                    let card = document.getElementById(`card-${pairIdx}-${side}`);
-                    if (card) {
-                        let withdrawInputs = card.querySelectorAll('.withdraw-input');
-                        let mDeductions = pair[side].manualPayDeductions || Array(14).fill(0);
-                        withdrawInputs.forEach((inp, idx) => {
-                            let parts = inp.value.split('/');
+                    let tableObj = pair[side];
+                    let mDeductions = tableObj.manualPayDeductions || Array(14).fill(0);
+                    let sideTotal = 0;
+
+                    if (tableObj.withdraws) {
+                        tableObj.withdraws.forEach((wVal, idx) => {
+                            let parts = (wVal || "").split('/');
                             let wNum = parseFloat(parts[0]) || 0;
                             let mD = mDeductions[idx] || 0;
-                            grandTotal += Math.max(0, wNum - mD);
+                            sideTotal += Math.max(0, wNum - mD);
                         });
                     }
+                    grandTotal += sideTotal;
                 }
             });
         });
+
         let grandTotalEl = document.getElementById('grand-total-val');
-        if (grandTotalEl) grandTotalEl.innerText = formatNumber(grandTotal);
+        if (grandTotalEl) {
+            grandTotalEl.innerText = formatNumber(grandTotal);
+        }
     }
 
     window.handleSiteInput = function(e, pairIdx, side, rowIndex) {
