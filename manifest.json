@@ -1,0 +1,15 @@
+{
+  "name": "Bank Accounts Dashboard",
+  "short_name": "Funds Tracker",
+  "start_url": "/funds-tracker/",
+  "display": "standalone",
+  "background_color": "#070a0f",
+  "theme_color": "#070a0f",
+  "icons": [
+    {
+      "src": "logogcashtracker.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ]
+}
