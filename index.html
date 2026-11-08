@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1580, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GCash Tracker Dashboard</title>
     
     <!-- Custom App Icons & PWA Manifest -->
@@ -27,6 +27,7 @@
             flex-direction: column;
             align-items: center;
             min-width: 1580px;
+            overflow-x: auto;
         }
         .main-layout {
             display: flex;
@@ -985,17 +986,22 @@
 
     function calculateCard(pairIdx, side) {
         let card = document.getElementById(`card-${pairIdx}-${side}`);
-        if (!card) return;
-
-        let gcashInputs = card.querySelectorAll('.gcash-input');
-        let withdrawInputs = card.querySelectorAll('.withdraw-input');
-        let mDeductions = tablePairs[pairIdx][side].manualPayDeductions || Array(14).fill(0);
+        let tableObj = tablePairs[pairIdx][side];
+        let withdrawArr = tableObj.withdraws || Array(14).fill("");
+        let mDeductions = tableObj.manualPayDeductions || Array(14).fill(0);
 
         let totalWithdraw = 0;
         let totalPay = 0;
 
         for (let i = 0; i < maxRows; i++) {
-            let wVal = withdrawInputs[i] ? withdrawInputs[i].value : "";
+            let wVal = withdrawArr[i] || "";
+            if (card) {
+                let withdrawInputs = card.querySelectorAll('.withdraw-input');
+                if (withdrawInputs[i]) {
+                    wVal = withdrawInputs[i].value;
+                }
+            }
+
             let parts = wVal.split('/');
             let wNum = parseFloat(parts[0]) || 0;
             let pNum = parseFloat(parts[1]) || 0;
@@ -1005,26 +1011,30 @@
             totalWithdraw += finalW;
             totalPay += pNum;
 
-            let gNum = parseFloat(gcashInputs[i].value.replace(/,/g, '')) || 0;
-            let sendVal = gNum - finalW;
-            let sendEl = document.getElementById(`send-${pairIdx}-${side}-${i}`);
-            if (sendEl) {
-                sendEl.innerText = sendVal !== 0 ? formatNumber(sendVal) : "0";
+            if (card) {
+                let gcashInputs = card.querySelectorAll('.gcash-input');
+                let gNum = gcashInputs[i] ? parseFloat(gcashInputs[i].value.replace(/,/g, '')) || 0 : 0;
+                let sendVal = gNum - finalW;
+                let sendEl = document.getElementById(`send-${pairIdx}-${side}-${i}`);
+                if (sendEl) {
+                    sendEl.innerText = sendVal !== 0 ? formatNumber(sendVal) : "0";
+                }
             }
         }
 
         let remainingLimit = 5000 - totalWithdraw;
 
-        let totValEl = document.getElementById(`tot-val-${pairIdx}-${side}`);
-        let limValEl = document.getElementById(`lim-val-${pairIdx}-${side}`);
-        let totPayEl = document.getElementById(`tot-pay-${pairIdx}-${side}`);
+        if (card) {
+            let totValEl = document.getElementById(`tot-val-${pairIdx}-${side}`);
+            let limValEl = document.getElementById(`lim-val-${pairIdx}-${side}`);
+            let totPayEl = document.getElementById(`tot-pay-${pairIdx}-${side}`);
 
-        if (totValEl) totValEl.innerText = formatNumber(totalWithdraw);
-        if (limValEl) {
-            limValEl.innerText = formatNumber(remainingLimit);
-            limValEl.style.color = remainingLimit <= 199 ? "#ef4444" : "#ef4444";
+            if (totValEl) totValEl.innerText = formatNumber(totalWithdraw);
+            if (limValEl) {
+                limValEl.innerText = formatNumber(remainingLimit);
+            }
+            if (totPayEl) totPayEl.innerText = formatNumber(totalPay);
         }
-        if (totPayEl) totPayEl.innerText = formatNumber(totalPay);
 
         calculateGrandTotal();
     }
