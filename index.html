@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GCash Tracker Dashboard</title>
     
-    <!-- Custom App Icons & PWA Manifest -->
+    <!-- Custom App Icons & PWA Manifest for Mobile/App Download -->
     <link rel="apple-touch-icon" href="logogcashtracker.png">
     <link rel="icon" type="image/png" href="logogcashtracker.png">
     <link rel="manifest" href="manifest.json">
@@ -27,7 +27,7 @@
             flex-direction: column;
             align-items: center;
             min-width: 1580px;
-            overflow-x: auto;
+            overflow-x: auto; /* Gitugotan ang horizontal scrolling sa selpon aron dili ma-squeeze */
         }
         .main-layout {
             display: flex;
@@ -623,6 +623,7 @@
         ];
     }
 
+    // 1. Load Local Storage for Data
     const localData = localStorage.getItem('gcashTracker_data');
     if (localData) {
         try {
@@ -633,6 +634,7 @@
         }
     }
 
+    // 2. Firebase Listener for Data
     onValue(dbRef, (snapshot) => {
         const serverData = snapshot.val();
         if (serverData && serverData.length > 0) {
@@ -672,6 +674,7 @@
         });
     }
 
+    // Copy Notepad Content Function
     window.copyNotepadContent = function() {
         let textarea = document.getElementById('notepad-textarea');
         if (!textarea) return;
@@ -699,6 +702,7 @@
         }
     }
 
+    // Render Notepad Content Automatically (Skipping <= 199 limit items)
     function renderInteractiveNotes() {
         let textarea = document.getElementById('notepad-textarea');
         if (!textarea) return;
