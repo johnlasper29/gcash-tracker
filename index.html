@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1580, initial-scale=1.0">
     <title>GCash Tracker Dashboard</title>
+    
+    <!-- Custom App Icons & PWA Manifest -->
+    <link rel="apple-touch-icon" href="logogcashtracker.png">
+    <link rel="icon" type="image/png" href="logogcashtracker.png">
+    <link rel="manifest" href="manifest.json">
+
     <!-- Google Font: Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -616,7 +622,6 @@
         ];
     }
 
-    // 1. Load Local Storage for Data
     const localData = localStorage.getItem('gcashTracker_data');
     if (localData) {
         try {
@@ -627,7 +632,6 @@
         }
     }
 
-    // 2. Firebase Listener for Data
     onValue(dbRef, (snapshot) => {
         const serverData = snapshot.val();
         if (serverData && serverData.length > 0) {
@@ -667,7 +671,6 @@
         });
     }
 
-    // Copy Notepad Content Function
     window.copyNotepadContent = function() {
         let textarea = document.getElementById('notepad-textarea');
         if (!textarea) return;
@@ -695,12 +698,10 @@
         }
     }
 
-    // Render Notepad Content Automatically (Skipping <= 199 limit items)
     function renderInteractiveNotes() {
         let textarea = document.getElementById('notepad-textarea');
         if (!textarea) return;
         
-        // Kung ga-type ang user sa notepad, ayaw i-overwrite dayon aron dili ma-interrupt ang iyang gi-type
         if (isUserTypingInNotepad && document.activeElement === textarea) return;
 
         let linesToRender = [];
@@ -736,7 +737,6 @@
                         if (cleanNum !== "") {
                             let isRedDim = (cardRemainingLimit <= 199);
                             
-                            // Kung labaw sa 199 ang limit, i-apil sa auto notepad
                             if (!isRedDim) {
                                 let displayText = (cardRemainingLimit <= 1999) ? `${cleanNum} - ${formatNumber(cardRemainingLimit)} limit` : cleanNum;
                                 linesToRender.push(displayText);
@@ -747,10 +747,8 @@
             });
         });
 
-        // Idugang ang G-Cash MINE💚 sa ilawom
         linesToRender.push("G-Cash MINE💚");
 
-        // Kung naay gi-save nga custom text sa user, gamita kundi gamita ang auto generated
         if (window.customNotepadText !== undefined && isUserTypingInNotepad) {
             // Keep user typed text
         } else {
@@ -871,54 +869,40 @@
         document.querySelectorAll('.row-minus-popover').forEach(el => el.style.display = 'none');
         let popover = document.getElementById(`popover-minus-${pairIdx}-${side}-${rowIndex}`);
         if (popover) {
-            popover.style.display = 'flex';
-            event.stopPropagation();
+            let currentDisp = window.getComputedStyle(popover).display;
+            popover.style.display = currentDisp === 'none' ? 'flex' : 'none';
         }
+        if (event) event.stopPropagation();
     }
-
-    document.addEventListener("click", function(e) {
-        if (!e.target.closest('.withdraw-wrapper') && !e.target.closest('.row-minus-popover')) {
-            document.querySelectorAll('.row-minus-popover').forEach(el => el.style.display = 'none');
-        }
-    });
 
     window.applyRowAdjustment = function(event, pairIdx, side, rowIndex, amount) {
-        event.stopPropagation();
-        if (!tablePairs[pairIdx][side].manualPayDeductions) {
-            tablePairs[pairIdx][side].manualPayDeductions = Array(14).fill(0);
-        }
-        
-        let currentDeduction = tablePairs[pairIdx][side].manualPayDeductions[rowIndex] || 0;
-        let newDeduction = currentDeduction + amount;
-        if (newDeduction < 0) newDeduction = 0;
-
-        tablePairs[pairIdx][side].manualPayDeductions[rowIndex] = newDeduction;
-        
-        saveDataToBoth();
-        
+        if (event) event.stopPropagation();
         let card = document.getElementById(`card-${pairIdx}-${side}`);
-        let wInp = card.querySelectorAll('.withdraw-input')[rowIndex];
-        let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
-        if (displayEl) {
-            displayEl.innerHTML = formatWithdrawDisplay(wInp.value, newDeduction);
-        }
+        if (!card) return;
+        let inputs = card.querySelectorAll('.withdraw-input');
+        let targetInput = inputs[rowIndex];
+        if (!targetInput) return;
 
-        calculateCard(pairIdx, side);
-        calculateGrandTotal();
+        let rawVal = targetInput.value.trim();
+        let parts = rawVal.split('/');
+        let currentW = parseFloat(parts[0]) || 0;
+        let newW = currentW - amount;
+        if (newW < 0) newW = 0;
+
+        let payVal = parts[1] !== undefined ? parts[1].trim() : "";
+        targetInput.value = payVal !== "" ? `${newW}/${payVal}` : `${newW}`;
+        
+        let mDeductions = tablePairs[pairIdx][side].manualPayDeductions;
+        if (!mDeductions) mDeductions = Array(14).fill(0);
+        if (amount > 0) {
+            mDeductions[rowIndex] = (mDeductions[rowIndex] || 0) + amount;
+        } else {
+            mDeductions[rowIndex] = Math.max(0, (mDeductions[rowIndex] || 0) + amount);
+        }
+        tablePairs[pairIdx][side].manualPayDeductions = mDeductions;
+
+        updateData(pairIdx, side);
         document.querySelectorAll('.row-minus-popover').forEach(el => el.style.display = 'none');
-    }
-
-    window.resetTable = function(pairIdx, side) {
-        if (confirm("Sigurado ka ba nga i-reset kining tableha?")) {
-            tablePairs[pairIdx][side] = {
-                gcash: Array(14).fill(""),
-                sites: Array(14).fill(""),
-                withdraws: Array(14).fill(""),
-                manualPayDeductions: Array(14).fill(0)
-            };
-            saveDataToBoth();
-            renderDashboard();
-        }
     }
 
     window.toggleCollapse = function(pairIdx, side) {
@@ -931,139 +915,215 @@
         renderDashboard();
     }
 
-    function formatWithdrawDisplay(val, mDeduction = 0) {
-        if (!val && mDeduction === 0) return '';
-        let parts = (val || "").split('/');
-        let left = parts[0] !== undefined ? parts[0].trim() : '';
-        let right = parts[1] !== undefined ? parts[1].trim() : '';
-        
-        let leftFormatted = !isNaN(left) && left !== '' ? formatNumber(parseFloat(left)) : left;
-        let rightFormatted = !isNaN(right) && right !== '' ? formatNumber(parseFloat(right)) : right;
+    function formatWithdrawDisplay(wVal, mDeduction) {
+        let parts = (wVal || "").split('/');
+        let wNum = parts[0].trim();
+        let pNum = parts[1] !== undefined ? parts[1].trim() : "";
 
-        let html = `<span class="part-left">${leftFormatted} / </span>`;
-        if (right !== '' || left !== '') {
-            html += `<span class="part-right">${rightFormatted}</span>`;
+        if (wNum === "" && pNum === "") return "";
+        let displayStr = wNum;
+        if (pNum !== "") {
+            displayStr += `/<span class="part-right">${pNum}</span>`;
         }
         if (mDeduction > 0) {
-            html += `<span class="part-minus">-${mDeduction}</span>`;
+            displayStr += `<span class="part-minus">-${mDeduction}</span>`;
         }
-        return html;
+        return displayStr;
     }
 
     window.handleWithdrawInput = function(pairIdx, side, rowIndex, inputEl) {
         let val = inputEl.value;
-        let mDeduction = tablePairs[pairIdx][side].manualPayDeductions ? (tablePairs[pairIdx][side].manualPayDeductions[rowIndex] || 0) : 0;
-        let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
-        if (displayEl) {
-            displayEl.innerHTML = formatWithdrawDisplay(val, mDeduction);
+        let mDeductions = tablePairs[pairIdx][side].manualPayDeductions;
+        let mD = mDeductions && mDeductions[rowIndex] ? mDeductions[rowIndex] : 0;
+        let displayDiv = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
+        if (displayDiv) {
+            displayDiv.innerHTML = formatWithdrawDisplay(val, mD);
         }
         updateData(pairIdx, side);
     }
 
     window.normalizeWithdraw = function(pairIdx, side, rowIndex, inputEl) {
         let val = inputEl.value.trim();
-        if (val.includes('/')) {
-            let parts = val.split('/');
-            let p1 = parts[0].trim();
-            let p2 = parts[1].trim();
-            if (p2 !== '') {
-                inputEl.value = `${p1} / ${p2}`;
-            } else {
-                inputEl.value = `${p1} / `;
-            }
-        }
-        let mDeduction = tablePairs[pairIdx][side].manualPayDeductions ? (tablePairs[pairIdx][side].manualPayDeductions[rowIndex] || 0) : 0;
-        let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
-        if (displayEl) {
-            displayEl.innerHTML = formatWithdrawDisplay(inputEl.value, mDeduction);
+        if (val.includes('+')) {
+            let parts = val.split('+');
+            let base = parseFloat(parts[0]) || 0;
+            let add = parseFloat(parts[1]) || 0;
+            let total = base + add;
+            let subParts = val.split('/');
+            let payPart = subParts[1] !== undefined ? `/${subParts[1]}` : "";
+            inputEl.value = `${total}${payPart}`;
         }
         updateData(pairIdx, side);
     }
 
-    window.handleSiteInput = function(event, pairIdx, side, rowIndex) {
-        let inputEl = event.target;
-        let val = inputEl.value;
-        let listContainer = document.getElementById(`autocomplete-list-${pairIdx}-${side}-${rowIndex}`);
-        
-        listContainer.innerHTML = "";
+    window.updateData = function(pairIdx, side) {
+        let card = document.getElementById(`card-${pairIdx}-${side}`);
+        if (!card) return;
+
+        let gcashInputs = card.querySelectorAll('.gcash-input');
+        let siteInputs = card.querySelectorAll('.site-input');
+        let withdrawInputs = card.querySelectorAll('.withdraw-input');
+
+        let gcashArr = [];
+        let siteArr = [];
+        let withdrawArr = [];
+
+        for (let i = 0; i < maxRows; i++) {
+            gcashArr.push(gcashInputs[i] ? gcashInputs[i].value : "");
+            siteArr.push(siteInputs[i] ? siteInputs[i].value : "");
+            withdrawArr.push(withdrawInputs[i] ? withdrawInputs[i].value : "");
+        }
+
+        tablePairs[pairIdx][side].gcash = gcashArr;
+        tablePairs[pairIdx][side].sites = siteArr;
+        tablePairs[pairIdx][side].withdraws = withdrawArr;
+
+        saveDataToBoth();
+        calculateCard(pairIdx, side);
+        renderInteractiveNotes();
+    }
+
+    function calculateCard(pairIdx, side) {
+        let card = document.getElementById(`card-${pairIdx}-${side}`);
+        if (!card) return;
+
+        let gcashInputs = card.querySelectorAll('.gcash-input');
+        let withdrawInputs = card.querySelectorAll('.withdraw-input');
+        let mDeductions = tablePairs[pairIdx][side].manualPayDeductions || Array(14).fill(0);
+
+        let totalWithdraw = 0;
+        let totalPay = 0;
+
+        for (let i = 0; i < maxRows; i++) {
+            let wVal = withdrawInputs[i] ? withdrawInputs[i].value : "";
+            let parts = wVal.split('/');
+            let wNum = parseFloat(parts[0]) || 0;
+            let pNum = parseFloat(parts[1]) || 0;
+            let mD = mDeductions[i] || 0;
+
+            let finalW = Math.max(0, wNum - mD);
+            totalWithdraw += finalW;
+            totalPay += pNum;
+
+            let gNum = parseFloat(gcashInputs[i].value.replace(/,/g, '')) || 0;
+            let sendVal = gNum - finalW;
+            let sendEl = document.getElementById(`send-${pairIdx}-${side}-${i}`);
+            if (sendEl) {
+                sendEl.innerText = sendVal !== 0 ? formatNumber(sendVal) : "0";
+            }
+        }
+
+        let remainingLimit = 5000 - totalWithdraw;
+
+        let totValEl = document.getElementById(`tot-val-${pairIdx}-${side}`);
+        let limValEl = document.getElementById(`lim-val-${pairIdx}-${side}`);
+        let totPayEl = document.getElementById(`tot-pay-${pairIdx}-${side}`);
+
+        if (totValEl) totValEl.innerText = formatNumber(totalWithdraw);
+        if (limValEl) {
+            limValEl.innerText = formatNumber(remainingLimit);
+            limValEl.style.color = remainingLimit <= 199 ? "#ef4444" : "#ef4444";
+        }
+        if (totPayEl) totPayEl.innerText = formatNumber(totalPay);
+
+        calculateGrandTotal();
+    }
+
+    function calculateGrandTotal() {
+        let grandTotal = 0;
+        tablePairs.forEach((pair, pairIdx) => {
+            ['left', 'right'].forEach(side => {
+                let isVisible = side === 'left' ? pair.leftVisible : pair.rightVisible;
+                let isCollapsed = side === 'left' ? pair.leftCollapsed : pair.rightCollapsed;
+                if (isVisible && !isCollapsed) {
+                    let tableObj = pair[side];
+                    let mDeductions = tableObj.manualPayDeductions || Array(14).fill(0);
+                    let sideTotal = 0;
+
+                    if (tableObj.withdraws) {
+                        tableObj.withdraws.forEach((wVal, idx) => {
+                            let parts = (wVal || "").split('/');
+                            let wNum = parseFloat(parts[0]) || 0;
+                            let mD = mDeductions[idx] || 0;
+                            sideTotal += Math.max(0, wNum - mD);
+                        });
+                    }
+                    grandTotal += sideTotal;
+                }
+            });
+        });
+
+        let grandTotalEl = document.getElementById('grand-total-val');
+        if (grandTotalEl) {
+            grandTotalEl.innerText = formatNumber(grandTotal);
+        }
+    }
+
+    window.handleSiteInput = function(e, pairIdx, side, rowIndex) {
+        let val = e.target.value;
+        let listEl = document.getElementById(`autocomplete-list-${pairIdx}-${side}-${rowIndex}`);
+        if (!listEl) return;
+
+        listEl.innerHTML = '';
         if (!val) {
             updateData(pairIdx, side);
             return;
         }
 
-        let valLower = val.toLowerCase();
-        let matches = siteList.filter(site => site.toLowerCase().includes(valLower));
-
-        matches.forEach(matchText => {
-            let item = document.createElement("div");
-            item.innerHTML = matchText;
-            item.onclick = function() {
-                inputEl.value = matchText;
-                listContainer.innerHTML = "";
+        let matches = siteList.filter(s => s.toLowerCase().startsWith(val.toLowerCase()));
+        matches.forEach(match => {
+            let itemDiv = document.createElement('div');
+            itemDiv.innerHTML = match;
+            itemDiv.onclick = function() {
+                e.target.value = match;
+                listEl.innerHTML = '';
                 updateData(pairIdx, side);
             };
-            listContainer.appendChild(item);
+            listEl.appendChild(itemDiv);
         });
 
         updateData(pairIdx, side);
     }
 
-    document.addEventListener("click", function (e) {
-        if (!e.target.classList.contains('site-input')) {
-            document.querySelectorAll('.autocomplete-items').forEach(el => el.innerHTML = '');
-        }
-    });
-
-    window.handleSiteKey = function(event, pairIdx, side, rowIndex) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            let card = document.getElementById(`card-${pairIdx}-${side}`);
-            let siteInput = card.querySelectorAll('.site-input')[rowIndex];
-            let withdrawInput = card.querySelectorAll('.withdraw-input')[rowIndex];
-            let listContainer = document.getElementById(`autocomplete-list-${pairIdx}-${side}-${rowIndex}`);
-            if (listContainer) listContainer.innerHTML = "";
-
-            let val = siteInput.value;
-
-            let match = val.match(/(.+?)\s+(\d+)[-\/,\s](\d+)/);
-            if (match) {
-                let siteName = match[1].trim();
-                let num1 = match[2];
-                let num2 = match[3];
-
-                siteInput.value = siteName;
-                withdrawInput.value = `${num1} / ${num2}`;
-                
-                let mDeduction = tablePairs[pairIdx][side].manualPayDeductions ? (tablePairs[pairIdx][side].manualPayDeductions[rowIndex] || 0) : 0;
-                let displayEl = document.getElementById(`display-${pairIdx}-${side}-${rowIndex}`);
-                if (displayEl) displayEl.innerHTML = formatWithdrawDisplay(withdrawInput.value, mDeduction);
-            }
-
-            updateData(pairIdx, side);
-
-            let nextSiteInput = card.querySelectorAll('.site-input')[rowIndex + 1];
-            if (nextSiteInput) {
-                nextSiteInput.focus();
-                nextSiteInput.select();
-            }
+    window.handleSiteKey = function(e, pairIdx, side, rowIndex) {
+        let listEl = document.getElementById(`autocomplete-list-${pairIdx}-${side}-${rowIndex}`);
+        if (e.key === 'Enter') {
+            if (listEl) listEl.innerHTML = '';
         }
     }
 
     window.addTablePair = function() {
         tablePairs.push({
-            category: "",
+            category: "RM",
             leftVisible: true, rightVisible: true,
             leftCollapsed: false, rightCollapsed: false,
             left: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) },
             right: { gcash: Array(14).fill(""), sites: Array(14).fill(""), withdraws: Array(14).fill(""), manualPayDeductions: Array(14).fill(0) }
         });
-        
-        openModal(tablePairs.length - 1);
+        saveDataToBoth();
+        renderDashboard();
+    }
+
+    window.resetTable = function(pairIdx, side) {
+        if (confirm("Reset this table data?")) {
+            tablePairs[pairIdx][side] = {
+                gcash: Array(14).fill(""),
+                sites: Array(14).fill(""),
+                withdraws: Array(14).fill(""),
+                manualPayDeductions: Array(14).fill(0)
+            };
+            saveDataToBoth();
+            renderDashboard();
+        }
     }
 
     window.deleteTable = function(pairIdx, side) {
-        if (confirm("Sigurado ka ba nga i-delete kining tableha?")) {
-            tablePairs[pairIdx][side + 'Visible'] = false;
+        if (confirm("Delete this table side?")) {
+            if (side === 'left') {
+                tablePairs[pairIdx].leftVisible = false;
+            } else {
+                tablePairs[pairIdx].rightVisible = false;
+            }
             if (!tablePairs[pairIdx].leftVisible && !tablePairs[pairIdx].rightVisible) {
                 tablePairs.splice(pairIdx, 1);
             }
@@ -1079,104 +1139,26 @@
 
     window.closeModal = function() {
         document.getElementById('categoryModal').style.display = 'none';
-        renderDashboard();
+        activePairIndex = null;
     }
 
-    window.selectCategory = function(categoryName) {
+    window.selectCategory = function(catName) {
         if (activePairIndex !== null) {
-            tablePairs[activePairIndex].category = categoryName;
-            closeModal();
+            tablePairs[activePairIndex].category = catName;
             saveDataToBoth();
             renderDashboard();
         }
+        closeModal();
     }
 
-    let saveTimeout = null;
-    window.updateData = function(pairIdx, side) {
-        let card = document.getElementById(`card-${pairIdx}-${side}`);
-        if (!card) return;
-
-        let gcashVals = [];
-        let sites = [];
-        let withdraws = [];
-        
-        card.querySelectorAll('.gcash-input').forEach(inp => gcashVals.push(inp.value));
-        card.querySelectorAll('.site-input').forEach(inp => sites.push(inp.value));
-        card.querySelectorAll('.withdraw-input').forEach(inp => withdraws.push(inp.value));
-
-        tablePairs[pairIdx][side].gcash = gcashVals;
-        tablePairs[pairIdx][side].sites = sites;
-        tablePairs[pairIdx][side].withdraws = withdraws;
-
-        calculateCard(pairIdx, side);
-        calculateGrandTotal();
-
-        clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(() => {
-            saveDataToBoth();
-        }, 500);
-    }
-
-    function calculateCard(pairIdx, side) {
-        let card = document.getElementById(`card-${pairIdx}-${side}`);
-        let totalWithdraw = 0;
-        let totalPay = 0;
-
-        let pair = tablePairs[pairIdx];
-        let mDeductions = pair && pair[side] && pair[side].manualPayDeductions ? pair[side].manualPayDundefineds : Array(14).fill(0);
-        if(!mDeductions) mDeductions = Array(14).fill(0);
-
-        if (card) {
-            let withdrawInputs = card.querySelectorAll('.withdraw-input');
-            withdrawInputs.forEach((inp, r) => {
-                let parts = inp.value.split('/');
-                let w = parseFloat(parts[0]) || 0;
-                let p = parseFloat(parts[1]) || 0;
-                let mD = mDeductions[r] || 0;
-                let effectiveP = p - mD;
-                if (effectiveP < 0) effectiveP = 0;
-
-                let sendEl = document.getElementById(`send-${pairIdx}-${side}-${r}`);
-                let standardSend = w - p; 
-                if (sendEl) sendEl.innerText = formatNumber(standardSend);
-                
-                totalWithdraw += w;
-                totalPay += effectiveP;
-            });
-        }
-
-        let remainingLimit = 5000 - totalWithdraw;
-
-        let totValEl = document.getElementById(`tot-val-${pairIdx}-${side}`);
-        let limValEl = document.getElementById(`lim-val-${pairIdx}-${side}`);
-        let totPayEl = document.getElementById(`tot-pay-${pairIdx}-${side}`);
-
-        if (totValEl) totValEl.innerText = formatNumber(totalWithdraw);
-        if (limValEl) limValEl.innerText = formatNumber(remainingLimit);
-        if (totPayEl) totPayEl.innerText = formatNumber(totalPay);
-
-        renderInteractiveNotes();
-    }
-
-    function calculateGrandTotal() {
-        let grandTotalPay = 0;
-        tablePairs.forEach((pair, pairIdx) => {
-            ['left', 'right'].forEach(side => {
-                if (pair[side + 'Visible'] && pair[side] && pair[side].withdraws) {
-                    let mDeductions = pair[side].manualPayDeductions || Array(14).fill(0);
-                    pair[side].withdraws.forEach((wVal, r) => {
-                        let parts = (wVal || "").split('/');
-                        let p = parseFloat(parts[1]) || 0;
-                        let mD = mDeductions[r] || 0;
-                        let effectiveP = p - mD;
-                        if (effectiveP < 0) effectiveP = 0;
-                        grandTotalPay += effectiveP;
-                    });
-                }
-            });
-        });
-        let grandEl = document.getElementById('grand-total-val');
-        if (grandEl) grandEl.innerText = formatNumber(grandTotalPay);
+    window.exportData = function() {
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tablePairs, null, 2));
+        let downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "gcash_tracker_backup.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
     }
 </script>
 
