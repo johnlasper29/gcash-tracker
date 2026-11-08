@@ -1,6 +1,6 @@
 {
   "name": "Bank Accounts Dashboard",
-  "short_name": "Funds Tracker",
+  "short_name": "GCash Tracker",
   "start_url": "/funds-tracker/",
   "display": "standalone",
   "background_color": "#070a0f",
