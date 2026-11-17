@@ -95,7 +95,31 @@
         }
         .btn-action:hover { background: #1f4e34; }
 
-        /* Notes Sidebar Style (380px width) */
+        .btn-clear-minus {
+            background: #b45309;
+            color: white;
+            border: 1px solid #d97706;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .btn-clear-minus:hover { background: #d97706; }
+
+        .btn-clear-pay {
+            background: #1e3a8a;
+            color: white;
+            border: 1px solid #2563eb;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .btn-clear-pay:hover { background: #2563eb; }
+
+        /* Notes Sidebar Style (Sticky & Scrollable Sidebar) */
         .notes-sidebar {
             width: 380px;
             background: #1e1e1e;
@@ -104,9 +128,11 @@
             display: flex;
             flex-direction: column;
             padding: 12px;
-            height: calc(100vh - 40px);
             position: sticky;
             top: 10px;
+            gap: 10px;
+            max-height: calc(100vh - 20px);
+            overflow-y: auto;
         }
         
         /* Big 22px Copy Button Header */
@@ -121,30 +147,49 @@
             font-weight: 700;
             cursor: pointer;
             text-align: center;
-            margin-bottom: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             transition: background 0.2s;
+            flex-shrink: 0;
+            margin-top: 5px;
         }
         .btn-copy-main:hover { background: #047857; }
         
-        /* Notepad Textarea Style (20px font, clickable anywhere) */
+        .notepad-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .notepad-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fbbf24;
+            padding-left: 2px;
+        }
+
+        /* Notepad Textarea Style */
         .notepad-textarea {
             width: 100%;
-            flex: 1;
             background: #121212;
             border: 1px solid #333;
             border-radius: 4px;
             padding: 10px;
             color: #e5e7eb;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
             resize: none;
             outline: none;
             line-height: 1.5;
+            overflow: hidden;
         }
         .notepad-textarea:focus {
             border-color: #22c55e;
             background: #0f172a;
+        }
+
+        /* Names List Textarea (20px font, not bold) */
+        #names-list-textarea {
+            font-size: 20px;
+            font-weight: 400;
         }
 
         .dashboard-grid {
@@ -528,6 +573,8 @@
                     GRAND TOTAL: <span id="grand-total-val">0</span>
                 </div>
                 <div class="header-btns">
+                    <button class="btn-clear-pay" onclick="clearAllPayValues()">Clear All Pay</button>
+                    <button class="btn-clear-minus" onclick="clearAllMinusDeductions()">Clear All -5</button>
                     <button class="btn-action" onclick="exportData()">Export Backup</button>
                 </div>
             </div>
@@ -543,10 +590,19 @@
         </div>
     </div>
 
-    <!-- Notes Sidebar (Notepad Style) -->
+    <!-- Notes Sidebar (Sticky & Scrollable Sidebar) -->
     <div class="notes-sidebar">
+        <div class="notepad-group">
+            <div class="notepad-label">NUMBERS & LIMITS:</div>
+            <textarea id="notepad-textarea" class="notepad-textarea" placeholder="Auto-populated notes..." oninput="autoResizeTextarea(this); saveNotepadManual()"></textarea>
+        </div>
+
         <button class="btn-copy-main" onclick="copyNotepadContent()">COPY</button>
-        <textarea id="notepad-textarea" class="notepad-textarea" placeholder="Auto-populated notes..." oninput="saveNotepadManual()"></textarea>
+
+        <div class="notepad-group">
+            <div class="notepad-label">NAMES LIST:</div>
+            <textarea id="names-list-textarea" class="notepad-textarea" placeholder="Type or paste names here..." oninput="autoResizeTextarea(this); saveNamesListManual()"></textarea>
+        </div>
     </div>
 </div>
 
@@ -582,11 +638,13 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const dbRef = ref(db, 'gcashTracker/data');
+    const namesRef = ref(db, 'gcashTracker/namesList');
 
     let tablePairs = [];
     const maxRows = 14;
     let activePairIndex = null;
     let isUserTypingInNotepad = false;
+    let isUserTypingInNames = false;
 
     const siteList = [
         "778go", "k67", "PHB", "t988", "j77", "qpjl", "ttjl", "OKT", "888pinas", "jlwafa", 
@@ -622,6 +680,46 @@
         ];
     }
 
+    window.autoResizeTextarea = function(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight + 4) + 'px';
+    }
+
+    // Clear all -5 deductions function with English confirmation text
+    window.clearAllMinusDeductions = function() {
+        if (confirm("Are you sure you want to clear all -5 deductions?")) {
+            tablePairs.forEach(pair => {
+                ['left', 'right'].forEach(side => {
+                    if (pair[side] && pair[side].manualPayDeductions) {
+                        pair[side].manualPayDeductions = Array(14).fill(0);
+                    }
+                });
+            });
+            saveDataToBoth();
+            renderDashboard();
+        }
+    }
+
+    // Clear all pay values (sets the right side of withdraw/pay to 0) with English confirmation text
+    window.clearAllPayValues = function() {
+        if (confirm("Are you sure you want to clear all pay values to zero?")) {
+            tablePairs.forEach(pair => {
+                ['left', 'right'].forEach(side => {
+                    if (pair[side] && pair[side].withdraws) {
+                        pair[side].withdraws = pair[side].withdraws.map(wVal => {
+                            if (!wVal) return "";
+                            let parts = wVal.split('/');
+                            let leftPart = parts[0] ? parts[0].trim() : "";
+                            return leftPart !== "" ? `${leftPart} / 0` : "";
+                        });
+                    }
+                });
+            });
+            saveDataToBoth();
+            renderDashboard();
+        }
+    }
+
     // 1. Load Local Storage for Data
     const localData = localStorage.getItem('gcashTracker_data');
     if (localData) {
@@ -631,6 +729,11 @@
         } catch(e) {
             console.error("Local storage error:", e);
         }
+    }
+
+    const localNames = localStorage.getItem('gcashTracker_names');
+    if (localNames !== null) {
+        window.customNamesText = localNames;
     }
 
     // 2. Firebase Listener for Data
@@ -666,6 +769,19 @@
         }
     });
 
+    onValue(namesRef, (snapshot) => {
+        const serverNames = snapshot.val();
+        if (serverNames !== null && !isUserTypingInNames) {
+            window.customNamesText = serverNames;
+            localStorage.setItem('gcashTracker_names', serverNames);
+            let namesArea = document.getElementById('names-list-textarea');
+            if (namesArea && document.activeElement !== namesArea) {
+                namesArea.value = serverNames;
+                autoResizeTextarea(namesArea);
+            }
+        }
+    });
+
     function saveDataToBoth() {
         localStorage.setItem('gcashTracker_data', JSON.stringify(tablePairs));
         set(dbRef, tablePairs).catch((error) => {
@@ -673,13 +789,24 @@
         });
     }
 
-    // Copy Notepad Content Function
-    window.copyNotepadContent = function() {
-        let textarea = document.getElementById('notepad-textarea');
-        if (!textarea) return;
+    window.saveNamesListManual = function() {
+        isUserTypingInNames = true;
+        let namesArea = document.getElementById('names-list-textarea');
+        if (namesArea) {
+            window.customNamesText = namesArea.value;
+            localStorage.setItem('gcashTracker_names', namesArea.value);
+            set(namesRef, namesArea.value).catch(err => console.error(err));
+        }
+    }
 
-        let textToClipboard = textarea.value;
-        navigator.clipboard.writeText(textToClipboard).then(() => {
+    // Copy Notepad Content Function (Copies ONLY Numbers & Limits textarea)
+    window.copyNotepadContent = function() {
+        let textarea1 = document.getElementById('notepad-textarea');
+        if (!textarea1) return;
+
+        let contentToCopy = textarea1.value;
+
+        navigator.clipboard.writeText(contentToCopy).then(() => {
             let btn = document.querySelector('.btn-copy-main');
             let originalText = btn.innerText;
             btn.innerText = "COPIED!";
@@ -701,15 +828,24 @@
         }
     }
 
-    // Render Notepad Content Automatically (Skipping <= 199 limit items)
+    // Render Notepad Content Automatically (Kinaunhan ra nga Gcash row ang kuhaon kada card)
     function renderInteractiveNotes() {
         let textarea = document.getElementById('notepad-textarea');
+        let namesArea = document.getElementById('names-list-textarea');
+
+        if (namesArea && window.customNamesText !== undefined && !isUserTypingInNames) {
+            namesArea.value = window.customNamesText;
+            autoResizeTextarea(namesArea);
+        }
+
         if (!textarea) return;
         
-        // Kung ga-type ang user sa notepad, ayaw i-overwrite dayon aron dili ma-interrupt ang iyang gi-type
         if (isUserTypingInNotepad && document.activeElement === textarea) return;
 
         let linesToRender = [];
+
+        // Ibutang una ang G-Cash YOURS 💚 sa pinakataas
+        linesToRender.push("G-Cash YOURS 💚");
 
         tablePairs.forEach((pair, pairIdx) => {
             ['left', 'right'].forEach(side => {
@@ -737,31 +873,29 @@
 
                     let cardRemainingLimit = 5000 - cardTotalWithdraw;
 
-                    pair[side].gcash.forEach((gNum, r) => {
+                    // Kuhaon ra ang KINAUNHAN (index 0) nga Gcash number sa matag card
+                    if (pair[side].gcash.length > 0) {
+                        let gNum = pair[side].gcash[0];
                         let cleanNum = (gNum || "").trim();
                         if (cleanNum !== "") {
                             let isRedDim = (cardRemainingLimit <= 199);
                             
-                            // Kung labaw sa 199 ang limit, i-apil sa auto notepad
                             if (!isRedDim) {
                                 let displayText = (cardRemainingLimit <= 1999) ? `${cleanNum} - ${formatNumber(cardRemainingLimit)} limit` : cleanNum;
                                 linesToRender.push(displayText);
                             }
                         }
-                    });
+                    }
                 }
             });
         });
 
-        // Idugang ang G-Cash MINE💚 sa ilawom
-        linesToRender.push("G-Cash MINE💚");
-
-        // Kung naay gi-save nga custom text sa user, gamita kundi gamita ang auto generated
         if (window.customNotepadText !== undefined && isUserTypingInNotepad) {
             // Keep user typed text
         } else {
             textarea.value = linesToRender.join('\n');
         }
+        autoResizeTextarea(textarea);
     }
 
     function renderDashboard() {
